@@ -11,12 +11,24 @@ class DoubanMovieSpider(scrapy.Spider):
     allowed_domains = ["douban.com"]
     start_urls = ["https://movie.douban.com/chart"]
 
+    # spider(douban_movie_chart)爬虫配置
+    custom_settings = {
+        "MONGODB_DATABASE": "douban",          # 数据库名
+        "MONGODB_COLLECTION": "movie_chart",  # 集合名
+        "ITEM_PIPELINES": {
+            "DlCrawler.pipelines.MongoDBPipeline": 400
+        }
+    }
+ 
     def start_requests(self):
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
         }
         for url in self.start_urls:
-            yield scrapy.Request(url=url, headers=headers)
+            yield scrapy.Request(url=url, 
+                                 headers=headers,
+                                meta={"playwright": False}
+            )
     def parse(self, response):
 
         # 临时调试代码

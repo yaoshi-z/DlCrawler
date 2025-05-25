@@ -13,20 +13,18 @@ class TextPipeline(object):
             raise DropItem(f"Missing text in {item}")
         
 class MongoDBPipeline(object):
-    def __init__(self,connection_string,database,collection):
+    def __init__(self,connection_string):
         self.connection_string = connection_string
-        self.database = database
-        self.collection = collection
     
     @classmethod
     def from_crawler(cls,crawler):
         return cls(
-            connection_string=crawler.settings.get('MONGODB_CONNECTION_STRING'),
-            database=crawler.settings.get('MONGODB_DATABASE'),
-            collection=crawler.settings.get('MONGODB_COLLECTION')
+            connection_string=crawler.settings.get('MONGODB_CONNECTION_STRING')
         )
     
     def open_spider(self,spider):
+        self.database = spider.settings.get('MONGODB_DATABASE')
+        self.collection = spider.settings.get('MONGODB_COLLECTION')
         self.client = pymongo.MongoClient(self.connection_string)
         self.db = self.client[self.database]
     

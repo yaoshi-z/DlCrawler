@@ -7,6 +7,15 @@ class QuoteSpider(scrapy.Spider):
     allowed_domains = ["toscrape.com"]
     start_urls = ["https://quotes.toscrape.com"]
 
+    # spider(quote)爬虫配置
+    custom_settings = {
+        "MONGODB_DATABASE": "scrapytutorial",   
+        "MONGODB_COLLECTION": "quotes",  
+        "ITEM_PIPELINES": {
+            "DlCrawler.pipelines.MongoDBPipeline": 400
+        }
+    }
+
     def parse(self, response):
         quotes = response.css(".quote")
         for quote in quotes:
