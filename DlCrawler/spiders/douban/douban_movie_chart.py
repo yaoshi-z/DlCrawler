@@ -1,7 +1,7 @@
 import scrapy
 from DlCrawler.items import DoubanMovieItem
 import re
-
+import time
 
 class DoubanMovieSpider(scrapy.Spider):
     name = "douban_movie_chart"
@@ -16,40 +16,72 @@ class DoubanMovieSpider(scrapy.Spider):
             yield scrapy.Request(url=url, headers=headers)
     def parse(self, response):
 
-        # with open("douban_movie_chart.html", "w", encoding="utf-8") as f:
+        # with open("temp_files/douban_movie_chart.html", "w", encoding="utf-8") as f:
         #     f.write(response.text)
 
-         # 提取所有电影条目
+         # 提取所有电影条目的Url
         movies = response.css("tr.item")
-        
+        movie_links = []
         for movie in movies:
-            item = DoubanMovieItem()
-            
-            # 电影名称（必填）
-            title = movie.css("a.nbg::attr(title)").get()
-            if not title:  # 跳过无名称的条目
-                continue
-            item["title"] = title.strip()
-            
-            # 电影简介（可选）
-            intro = movie.css("div.pl2 p::text").get()
-            item["intro"] = intro.strip() if intro else ""
-            
-            # 评分信息（可选）
-            rating = movie.css(".star .rating_nums::text").get()
-            item["rating"] = rating.strip() if rating else ""
-            
-            # 评价人数（可选）
-            votes_text = movie.css(".star .pl::text").get()
-            
-            if votes_text:  
-                # 匹配中文括号和"人评价"格式
-                votes_match = re.search(r'\((\d+)人评价\)', votes_text)
-                if votes_match:
-                    item["votes"] = votes_match.group(1)
-                else:
-                    # 处理其他情况（如"暂无评分"）
-                    item["votes"] = ""
-                
-            yield item
+            movie_link = movie.css("a::attr(href)").get()
+            movie_links.append(movie_link)
 
+        
+        
+
+        for link in movie_links:
+            yield scrapy.Request(link, 
+                                 callback=self.parse_movie_detail,
+                                 headers={
+                                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+                                 })
+            
+    def parse_movie_detail(self, response):
+        # with open("temp_files/douban_movie_chart.html", "w", encoding="utf-8") as f:
+        #     f.write(response.text)
+
+        item = DoubanMovieItem()
+        
+        # Basic info
+        item['url'] = response.url
+        item['title'] = response.css('h1 span[property="v:itemreviewed"]::text').get()
+        
+        # Main crew
+        item['director'] = response.xpath('//span[contains(text(), "导演")]/following-sibling::span/a/text()').getall()
+        item['screenwriter'] = response.xpath('//span[contains(text(), "编剧")]/following-sibling::span/a/text()').getall()
+        item['actors'] = response.css('a[rel="v:starring"]::text').getall()
+        
+        # Metadata
+        item['genres'] = response.css('span[property="v:genre"]::text').getall()
+        item['country'] = response.xpath('//span[contains(text(), "制片国家/地区")]/following-sibling::text()').get().strip()
+        item['language'] = response.xpath('//span[contains(text(), "语言")]/following-sibling::text()').get().strip()
+        
+        # Release info
+        item['release_dates'] = response.css('span[property="v:initialReleaseDate"]::text').getall()
+        item['runtime'] = response.css('span[property="v:runtime"]::attr(content)').get()
+        
+        # Alternate info
+        item['aka'] = response.xpath('//span[contains(text(), "又名")]/following-sibling::text()').get().split(' / ')
+        
+        # Ratings
+        item['imdb'] = response.xpath('//span[contains(text(), "IMDb:")]/following-sibling::text()').get().strip()
+        item['douban_rating'] = response.css('strong.ll.rating_num::text').get() or '暂无评分'
+        
+        
+        # Star distribution
+        item['star_distribution'] = None
+        if item['douban_rating'] != '暂无评分':
+            ratings = response.css('div.ratings-on-weight > div.item')
+            item['star_distribution'] = {
+                '5': ratings[0].css('span.rating_per::text').get(),
+                '4': ratings[1].css('span.rating_per::text').get(),
+                '3': ratings[2].css('span.rating_per::text').get(),
+                '2': ratings[3].css('span.rating_per::text').get(),
+                '1': ratings[4].css('span.rating_per::text').get()
+            }
+        
+        # Synopsis
+        item['synopsis'] = response.css('span[property="v:summary"]::text').getall()
+        item['synopsis'] = ''.join([text.strip() for text in item['synopsis']])
+        
+        yield item

@@ -12,14 +12,31 @@ class DlcrawlerItem(scrapy.Item):
     author = scrapy.Field()
     tags = scrapy.Field()
 class DoubanMovieItem(scrapy.Item):
-    # 电影名称（必填）
+     # Basic info
+    url = scrapy.Field()
     title = scrapy.Field()
     
-    # 电影简介（可选）
-    intro = scrapy.Field()
+    # Crew information
+    director = scrapy.Field()
+    screenwriter = scrapy.Field()
+    actors = scrapy.Field()
     
-    # 评分信息（可选）
-    rating = scrapy.Field()
+    # Metadata
+    genres = scrapy.Field()
+    country = scrapy.Field()
+    language = scrapy.Field()
     
-    # 评价人数（可选）
-    votes = scrapy.Field()
+    # Release info
+    release_dates = scrapy.Field()
+    runtime = scrapy.Field()
+    
+    # Alternate info
+    aka = scrapy.Field()
+    imdb = scrapy.Field()
+    
+    # Ratings
+    douban_rating = scrapy.Field()
+    star_distribution = scrapy.Field()
+    
+    # Synopsis
+    synopsis = scrapy.Field()
