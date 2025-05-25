@@ -16,6 +16,7 @@ class DoubanMovieSpider(scrapy.Spider):
             yield scrapy.Request(url=url, headers=headers)
     def parse(self, response):
 
+        # 临时调试代码
         # with open("temp_files/douban_movie_chart.html", "w", encoding="utf-8") as f:
         #     f.write(response.text)
 
@@ -37,38 +38,40 @@ class DoubanMovieSpider(scrapy.Spider):
                                  })
             
     def parse_movie_detail(self, response):
-        # with open("temp_files/douban_movie_chart.html", "w", encoding="utf-8") as f:
+
+        # 临时调试代码
+        # with open("temp_files/douban_movie_detail.html", "w", encoding="utf-8") as f:
         #     f.write(response.text)
 
         item = DoubanMovieItem()
         
-        # Basic info
+        # 基础信息
         item['url'] = response.url
         item['title'] = response.css('h1 span[property="v:itemreviewed"]::text').get()
         
-        # Main crew
+        # 主要演职人员
         item['director'] = response.xpath('//span[contains(text(), "导演")]/following-sibling::span/a/text()').getall()
         item['screenwriter'] = response.xpath('//span[contains(text(), "编剧")]/following-sibling::span/a/text()').getall()
         item['actors'] = response.css('a[rel="v:starring"]::text').getall()
         
-        # Metadata
+        # 电影资料
         item['genres'] = response.css('span[property="v:genre"]::text').getall()
         item['country'] = response.xpath('//span[contains(text(), "制片国家/地区")]/following-sibling::text()').get().strip()
         item['language'] = response.xpath('//span[contains(text(), "语言")]/following-sibling::text()').get().strip()
         
-        # Release info
+        # 上映信息
         item['release_dates'] = response.css('span[property="v:initialReleaseDate"]::text').getall()
         item['runtime'] = response.css('span[property="v:runtime"]::attr(content)').get()
         
-        # Alternate info
+        # 其他信息
         item['aka'] = response.xpath('//span[contains(text(), "又名")]/following-sibling::text()').get().split(' / ')
         
-        # Ratings
+        # IMDb及豆瓣评分
         item['imdb'] = response.xpath('//span[contains(text(), "IMDb:")]/following-sibling::text()').get().strip()
         item['douban_rating'] = response.css('strong.ll.rating_num::text').get() or '暂无评分'
         
         
-        # Star distribution
+        # 豆瓣评分分布
         item['star_distribution'] = None
         if item['douban_rating'] != '暂无评分':
             ratings = response.css('div.ratings-on-weight > div.item')
@@ -80,7 +83,7 @@ class DoubanMovieSpider(scrapy.Spider):
                 '1': ratings[4].css('span.rating_per::text').get()
             }
         
-        # Synopsis
+        # 剧情简介
         item['synopsis'] = response.css('span[property="v:summary"]::text').getall()
         item['synopsis'] = ''.join([text.strip() for text in item['synopsis']])
         
