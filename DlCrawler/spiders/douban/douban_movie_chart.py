@@ -1,3 +1,6 @@
+# Name: 豆瓣网电影排行榜爬虫
+# Description: 由豆瓣网电影排行榜Url进入，获取页面所有电影URL，逐个进入详情页并获取详细信息
+
 import scrapy
 from DlCrawler.items import DoubanMovieItem
 import re
