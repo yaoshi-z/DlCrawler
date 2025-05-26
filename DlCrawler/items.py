@@ -28,3 +28,12 @@ class DoubanMovieItem(scrapy.Item):
     douban_rating = scrapy.Field()
     star_distribution = scrapy.Field()
     synopsis = scrapy.Field()
+
+class BaiduTiebaTopicItem(scrapy.Item):
+    bar_name = scrapy.Field()      # 吧名
+    title = scrapy.Field()         # 帖子标题  
+    content = scrapy.Field()       # 帖子内容
+    author = scrapy.Field()        # 发帖人
+    reply_count = scrapy.Field()   # 回复数
+    last_reply_date = scrapy.Field() # 最后回复时间
+    # crawl_time = scrapy.Field()    # 抓取时间（建议添加）

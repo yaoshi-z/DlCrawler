@@ -25,6 +25,9 @@ ROBOTSTXT_OBEY = False
 #     "DlCrawler.pipelines.TextPipeline": None,
 #     "DlCrawler.pipelines.MongoDBPipeline": 400,
 # }
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
+#  MONGODB数据库地址
 MONGODB_CONNECTION_STRING = "mongodb://localhost:27017/"
 # MONGODB_DATABASE = "douban"
 # MONGODB_COLLECTION = "movie_chart"
