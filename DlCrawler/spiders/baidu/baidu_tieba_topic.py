@@ -3,6 +3,7 @@ from urllib.parse import quote,unquote
 from datetime import datetime
 from scrapy_playwright.page import PageMethod
 from DlCrawler.items import BaiduTiebaTopicItem
+from configs.baidu.baidu_tieba_topic_config import CONFIG, MAXPAGE
 
 class BaiduTiebaTopicSpider(scrapy.Spider):
     name = "baidu_tieba_topic"
@@ -11,31 +12,11 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
     encode_topic_name = quote(topic_name)
     start_urls = [f"https://tieba.baidu.com/f?kw={encode_topic_name}&ie=utf-8"]
 
-    custom_settings = {
-        'CONCURRENT_REQUESTS': 1,
-        'DOWNLOAD_DELAY': 5,
-        'MONGODB_CONNECTION_STRING' : "mongodb://localhost:27017/",
-        "MONGODB_DATABASE": "baidu",         # 数据库名
-        "MONGODB_COLLECTION": "topic_list",  # 集合名
-        'DOWNLOAD_HANDLERS':  {
-        "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-        "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler"
-        },
+    # 最大翻页数
+    max_page = MAXPAGE
+    current_page = 0
 
-        'PLAYWRIGHT_BROWSER_TYPE': "chromium",
-        'PLAYWRIGHT_LAUNCH_OPTIONS':  {
-            "headless": False,  # 关键参数！关闭无头模式显示浏览器窗口
-            "slow_mo": 1000,    # 将每个操作放慢1秒方便观察
-            "devtools": True    # 自动打开开发者工具面板
-        },
-
-        'DOWNLOADER_MIDDLEWARES': {
-            'scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler': 543,
-        },
-        'ITEM_PIPELINES': {
-            'DlCrawler.pipelines.AsyncMongoDBPipeline': 300
-        }
-    }
+    custom_settings = CONFIG
 
     def start_requests(self):
         for url in self.start_urls:
@@ -67,3 +48,4 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
             item['content'] = post.css('div.threadlist_text div.threadlist_abs::text').get('').strip()
             item['author'] = post.css('div.threadlist_author span.tb_icon_author a.frs-author-name::text').get('').strip()
             item['reply_count'] = int(post.css('div.col2_left span.threadlist_rep_num::text').get('0'))
+            yield item
