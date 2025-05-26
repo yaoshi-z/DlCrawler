@@ -26,4 +26,5 @@ CONFIG = {
         }
     }
 
+TOPIC_NAME = "郑州地铁"  # 贴吧主题名称
 MAXPAGE = 5  # 最大翻页数

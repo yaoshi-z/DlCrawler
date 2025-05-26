@@ -3,12 +3,12 @@ from urllib.parse import quote,unquote
 from datetime import datetime
 from scrapy_playwright.page import PageMethod
 from DlCrawler.items import BaiduTiebaTopicItem
-from configs.baidu.baidu_tieba_topic_config import CONFIG, MAXPAGE
+from configs.baidu.baidu_tieba_topic_config import CONFIG, MAXPAGE,TOPIC_NAME
 
 class BaiduTiebaTopicSpider(scrapy.Spider):
     name = "baidu_tieba_topic"
     allowed_domains = ["baidu.com"]
-    topic_name = "郑州地铁"
+    topic_name = TOPIC_NAME  # 贴吧主题名称
     encode_topic_name = quote(topic_name)
     start_urls = [f"https://tieba.baidu.com/f?kw={encode_topic_name}&ie=utf-8"]
 
