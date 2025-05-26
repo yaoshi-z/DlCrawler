@@ -14,6 +14,7 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
     custom_settings = {
         'CONCURRENT_REQUESTS': 1,
         'DOWNLOAD_DELAY': 5,
+        'MONGODB_CONNECTION_STRING' : "mongodb://localhost:27017/",
         "MONGODB_DATABASE": "baidu",         # 数据库名
         "MONGODB_COLLECTION": "topic_list",  # 集合名
         'DOWNLOAD_HANDLERS':  {
@@ -32,7 +33,7 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
             'scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler': 543,
         },
         'ITEM_PIPELINES': {
-            'DlCrawler.pipelines.MongoDBPipeline': 300
+            'DlCrawler.pipelines.AsyncMongoDBPipeline': 300
         }
     }
 
@@ -51,46 +52,18 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
 
     def parse(self, response):
         # 临时调试代码
-        # with open("debug_files/baidu_tieba_topic.html", "w", encoding="utf-8") as f:
-        #     f.write(response.text)
+        with open("debug_files/baidu_tieba_topic.html", "w", encoding="utf-8") as f:
+            f.write(response.text)
 
         # 提取吧名（从<title>标签）
         bar_name = unquote(response.xpath('//title/text()').get().split('-')[0].strip())
         
-        for post in response.css('div.threadlist_detail:not(.ylh-ad-container)'):  # 增加广告过滤
+        for post in response.css('div.t_con.cleafix'):  # 增加广告过滤
             item = BaiduTiebaTopicItem()
             
             # 使用规范字段赋值方式
             item['bar_name'] = bar_name
-            item['title'] = post.css('a.j_th_tit::text').get('').strip()
-            item['content'] = post.css('div.threadlist_abs::text').get('').strip()
-            item['author'] = post.css('span.tb_icon_author a.frs-author-name::text').get('').strip()
-            item['reply_count'] = int(post.css('span.threadlist_rep_num::text').get('0'))
-            item['last_reply_date'] = self.parse_date(
-                post.css('span.threadlist_reply_date::text, span.is_show_create_time::text').get()
-            )
-            
-            yield item
-
-    def parse_date(self, raw_date):
-        """处理不同日期格式"""
-        current_year = datetime.now().year
-        
-        if not raw_date:
-            return datetime.now().strftime("%Y-%m-%d")
-        
-        raw_date = raw_date.strip()
-        
-        # 处理完整日期格式（如2024-09）
-        if '-' in raw_date and len(raw_date) > 5:
-            return datetime.strptime(raw_date, "%Y-%m-%d").date()
-        
-        # 处理缺失年份的格式（如5-24）
-        if '-' in raw_date:
-            return datetime.strptime(f"{current_year}-{raw_date}", "%Y-%m-%d").date()
-        
-        # 处理纯月份格式（如5月）
-        if '月' in raw_date:
-            return datetime.strptime(f"{current_year}-{raw_date.replace('月','')}", "%Y-%m").date()
-        
-        return datetime.now().strftime("%Y-%m-%d")
+            item['title'] = post.css('div.threadlist_title a.j_th_tit::text').get('').strip()
+            item['content'] = post.css('div.threadlist_text div.threadlist_abs::text').get('').strip()
+            item['author'] = post.css('div.threadlist_author span.tb_icon_author a.frs-author-name::text').get('').strip()
+            item['reply_count'] = int(post.css('div.col2_left span.threadlist_rep_num::text').get('0'))

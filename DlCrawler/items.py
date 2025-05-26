@@ -35,5 +35,3 @@ class BaiduTiebaTopicItem(scrapy.Item):
     content = scrapy.Field()       # 帖子内容
     author = scrapy.Field()        # 发帖人
     reply_count = scrapy.Field()   # 回复数
-    last_reply_date = scrapy.Field() # 最后回复时间
-    # crawl_time = scrapy.Field()    # 抓取时间（建议添加）
