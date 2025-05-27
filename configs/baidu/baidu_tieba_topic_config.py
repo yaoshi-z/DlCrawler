@@ -1,6 +1,6 @@
 # baidu_tieba_topic_config.py
 
-CONFIG = {
+CUSTOM_SETTINGS = {
         'CONCURRENT_REQUESTS': 1,
         'DOWNLOAD_DELAY': 5,
         'MONGODB_CONNECTION_STRING' : "mongodb://localhost:27017/",

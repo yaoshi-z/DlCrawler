@@ -3,7 +3,7 @@ from urllib.parse import quote,unquote
 from datetime import datetime
 from scrapy_playwright.page import PageMethod
 from DlCrawler.items import BaiduTiebaTopicItem
-from configs.baidu.baidu_tieba_topic_config import CONFIG, MAXPAGE,TOPIC_NAME
+from configs.baidu.baidu_tieba_topic_config import CUSTOM_SETTINGS, MAXPAGE,TOPIC_NAME
 
 class BaiduTiebaTopicSpider(scrapy.Spider):
     name = "baidu_tieba_topic"
@@ -16,7 +16,7 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
     max_page = MAXPAGE
     current_page = 0
 
-    custom_settings = CONFIG
+    custom_settings = CUSTOM_SETTINGS
 
     def start_requests(self):
         for url in self.start_urls:
