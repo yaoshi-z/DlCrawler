@@ -1,11 +1,5 @@
-# Scrapy settings for DlCrawler project
-#
-# For simplicity, this file contains only settings considered important or
-# commonly used. You can find more settings consulting the documentation:
-#
-#     https://docs.scrapy.org/en/latest/topics/settings.html
-#     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import datetime
+import pathlib
 
 BOT_NAME = "DlCrawler"
 
@@ -20,34 +14,21 @@ ADDONS = {}
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-#itempipelines设置及数据库设置
-# ITEM_PIPELINES = {
-#     "DlCrawler.pipelines.TextPipeline": None,
-#     "DlCrawler.pipelines.MongoDBPipeline": 400,
-# }
-TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
+# TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 
 #  MONGODB数据库地址
 MONGODB_CONNECTION_STRING = "mongodb://localhost:27017/"
-# MONGODB_DATABASE = "douban"
-# MONGODB_COLLECTION = "movie_chart"
 
-# DOWNLOAD_HANDLERS = {
-#     "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-#     "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-# }
-# TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+# 日志配置
+# logs_dir = pathlib.Path(__file__).parent / "logs"
+# logs_dir.mkdir(parents=True, exist_ok=True)  # 确保日志目录存在
+# LOG_ENABLED = True #
+# LOG_STDOUT = True 
+# LOG_FILE = logs_dir / f"Log_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+# LOG_LEVEL = "DEBUG"
+# LOG_ENCODING = "utf-8"
+# LOG_FORMAT = '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+# LOG_DATEFORMAT = '%Y-%m-%d %H:%M:%S'
 
-# PLAYWRIGHT_BROWSER_TYPE = "chromium"
-# PLAYWRIGHT_LAUNCH_OPTIONS = {
-#     "headless": False,  # 关键参数！关闭无头模式显示浏览器窗口
-#     "slow_mo": 1000,    # 将每个操作放慢1秒方便观察
-#     "devtools": True    # 自动打开开发者工具面板
-# }
-
-# DOWNLOADER_MIDDLEWARES = {
-#     'scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler': 543,
-# }
-
-# Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"

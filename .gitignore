@@ -2,3 +2,5 @@
 dev_issues/
 __pycache__/
 debug_files/
+logs/
+.vscode/
