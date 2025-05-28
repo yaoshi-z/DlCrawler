@@ -32,12 +32,10 @@ CUSTOM_SETTINGS = {
          }
         },
         # Playwright中间件配置
-        'DOWNLOADER_MIDDLEWARES': {
-            'scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler': 543,
-        },
+        'DOWNLOADER_MIDDLEWARES': {},
         # Scrapy管道配置
         'ITEM_PIPELINES': {
-            'DlCrawler.pipelines.AsyncMongoDBPipeline': None
+            'DlCrawler.pipelines.AsyncMongoDBPipeline': 300
         }
     }
 
