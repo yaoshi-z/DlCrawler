@@ -31,8 +31,6 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
                     "playwright_page_methods": [
                         PageMethod("wait_for_selector", "div.t_con.cleafix", timeout=10000),
                         PageMethod("wait_for_timeout",random.randint(1000,3000)),#子列表加载完成
-                        PageMethod("mouse.move", x=100, y=100),  # 模拟鼠标移动
-                        PageMethod("wait_for_timeout", 2000)
                     ],
                     "playwright_include_page": True # 包含页面对象
                 }
@@ -40,7 +38,7 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
 
     async def parse(self, response):
         page = response.meta['playwright_page']
-
+       
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
         await page.wait_for_timeout(random.randint(2000, 5000))  # 随机延迟
         
