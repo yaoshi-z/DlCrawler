@@ -9,6 +9,7 @@ from DlCrawler.items import BaiduTiebaTopicItem
 from DlCrawler.configs.baidu.baidu_tieba_topic_config import CUSTOM_SETTINGS, MAXPAGE,TOPIC_NAME
 import random
 import json
+import pathlib
 
 class BaiduTiebaTopicSpider(scrapy.Spider):
     name = "baidu_tieba_topic"
@@ -42,11 +43,14 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
         await page.wait_for_timeout(random.randint(2000, 5000))  # 随机延迟
         
-        # # 临时调试,需要时自行取消注释
-        # debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
-        # debug_dir.mkdir(parents=True, exist_ok=True)
-        # with open(f"debug_dir/{self.name}_p{self.current_page}.html", "w", encoding="utf-8") as f:
-        #     f.write(response.text)
+        #  # 临时调试,需要时自行取消注释
+        # try:
+        #     debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
+        #     debug_dir.mkdir(parents=True, exist_ok=True)
+        #     with open(f"{debug_dir}/{self.name}_p{self.current_page}.html", "w", encoding="utf-8") as f:
+        #         f.write(response.text)
+        # except Exception as e:
+        #     self.logger.info(f"保存文件失败：{e}")
 
         # 提取吧名（从<title>标签）
         bar_name = unquote(response.xpath('//title/text()').get().split('-')[0].strip())

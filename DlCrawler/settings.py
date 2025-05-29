@@ -8,6 +8,7 @@ BOT_NAME = "DlCrawler"
 SPIDER_MODULES = ["DlCrawler.spiders.toscape",
                   "DlCrawler.spiders.douban",
                   "DlCrawler.spiders.baidu",
+                  "DlCrawler.spiders.weibo",
 ]
 NEWSPIDER_MODULE = "DlCrawler.spiders"#生成新爬虫的默认路径
 
@@ -16,8 +17,6 @@ ADDONS = {}
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-#  MONGODB数据库地址
-MONGODB_CONNECTION_STRING = "mongodb://localhost:27017/"
 
 '''日志配置,实现终端和文件双重输出'''
 logs_dir = pathlib.Path(__file__).parent / "logs"
