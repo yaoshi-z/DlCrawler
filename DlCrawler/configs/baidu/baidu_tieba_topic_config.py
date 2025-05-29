@@ -1,4 +1,5 @@
 # baidu_tieba_topic_config.py
+from scrapy_playwright.page import PageMethod
 
 CUSTOM_SETTINGS = {
         #  请求配置
@@ -16,6 +17,7 @@ CUSTOM_SETTINGS = {
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
 
         # Playwright配置
+        "PLAYWRIGHT_PERSISTENT_CONTEXT": True,
         'PLAYWRIGHT_BROWSER_TYPE': "chromium",
         'PLAYWRIGHT_LAUNCH_OPTIONS':  {
             "headless": False,  # 关闭无头模式,显示浏览器窗口
@@ -28,8 +30,12 @@ CUSTOM_SETTINGS = {
             "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
             "extra_http_headers": {
             "Referer": "https://tieba.baidu.com/",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
-         }
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+         },
+            "viewport": {"width": 1920, "height": 1080},
+          "playwright_page_methods": [
+        
+    ]
         },
         # Playwright中间件配置
         'DOWNLOADER_MIDDLEWARES': {},
@@ -40,4 +46,4 @@ CUSTOM_SETTINGS = {
     }
 
 TOPIC_NAME = "郑州地铁"  # 贴吧主题名称
-MAXPAGE = 5  # 最大翻页数
+MAXPAGE = 1  # 最大翻页数

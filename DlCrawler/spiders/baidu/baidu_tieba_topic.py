@@ -6,12 +6,13 @@ from urllib.parse import quote,unquote
 from datetime import datetime
 from scrapy_playwright.page import PageMethod
 from DlCrawler.items import BaiduTiebaTopicItem
-from configs.baidu.baidu_tieba_topic_config import CUSTOM_SETTINGS, MAXPAGE,TOPIC_NAME
+from DlCrawler.configs.baidu.baidu_tieba_topic_config import CUSTOM_SETTINGS, MAXPAGE,TOPIC_NAME
 import random
+import json
 
 class BaiduTiebaTopicSpider(scrapy.Spider):
     name = "baidu_tieba_topic"
-    allowed_domains = ["baidu.com"]
+    allowed_domains = ["tieba.baidu.com"]
     topic_name = TOPIC_NAME  # 贴吧主题名称
     encode_topic_name = quote(topic_name)
     start_urls = [f"https://tieba.baidu.com/f?kw={encode_topic_name}&ie=utf-8"]
@@ -21,7 +22,6 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
     current_page = 1
 
     custom_settings = CUSTOM_SETTINGS
-
     def start_requests(self):
         for url in self.start_urls:
             yield scrapy.Request(
@@ -30,7 +30,9 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
                     "playwright": True,  # 启用Playwright处理
                     "playwright_page_methods": [
                         PageMethod("wait_for_selector", "div.t_con.cleafix", timeout=10000),
-                        PageMethod("wait_for_timeout",random.randint(1000,3000)) #子列表加载完成
+                        PageMethod("wait_for_timeout",random.randint(1000,3000)),#子列表加载完成
+                        PageMethod("mouse.move", x=100, y=100),  # 模拟鼠标移动
+                        PageMethod("wait_for_timeout", 2000)
                     ],
                     "playwright_include_page": True # 包含页面对象
                 }
@@ -38,13 +40,14 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
 
     async def parse(self, response):
         page = response.meta['playwright_page']
-        
 
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
         await page.wait_for_timeout(random.randint(2000, 5000))  # 随机延迟
         
         # # 临时调试,需要时自行取消注释
-        # with open(f"debug_files/{self.name}_p{self.current_page}.html", "w", encoding="utf-8") as f:
+        # debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
+        # debug_dir.mkdir(parents=True, exist_ok=True)
+        # with open(f"debug_dir/{self.name}_p{self.current_page}.html", "w", encoding="utf-8") as f:
         #     f.write(response.text)
 
         # 提取吧名（从<title>标签）
