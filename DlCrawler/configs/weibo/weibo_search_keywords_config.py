@@ -37,10 +37,11 @@ CUSTOM_SETTINGS = {
         # Playwright中间件配置
         'DOWNLOADER_MIDDLEWARES': {},
         # Scrapy管道配置
+
         'ITEM_PIPELINES': {
-            'DlCrawler.pipelines.AsyncMongoDBPipeline': None
+            'DlCrawler.pipelines.AsyncMongoDBPipeline': 300
         }
     }
 
 KEYWORDS = "郑州地铁"  # 搜索关键词
-MAXCOUNT = 100 # 最大爬取数量
+MAXSCOUNT = 10 # 最大爬取数量
