@@ -3,7 +3,7 @@ import pathlib
 from DlCrawler.configs.weibo.weibo_homepage_config import CUSTOM_SETTINGS, MAXSCOUNT
 from scrapy_playwright.page import PageMethod
 import random
-from DlCrawler.items import WeiboSearchKeywordsItem
+from DlCrawler.items import WeiboHomepageItem
 
 class WeiboSearchKeywordsSpider(scrapy.Spider):
     name = "weibo_homepage"
@@ -61,7 +61,7 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
 
                 seen_links.add(content_link)  # 添加到已采集集合中
 
-                item = WeiboSearchKeywordsItem()
+                item = WeiboHomepageItem()
                 item['content_link'] = content_link
                 item['user_name'] = article.xpath('.//a[contains(@class, "head_name_24eEB")]/span/@title').get()
                 item['verified_type'] = article.xpath('.//div[contains(@class, "head-info_source_2zcEX")]/text()').get()
