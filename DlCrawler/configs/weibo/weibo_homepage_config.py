@@ -1,4 +1,4 @@
-# baidu_tieba_topic_config.py
+# weibo_homepage_config.py
 from scrapy_playwright.page import PageMethod
 
 CUSTOM_SETTINGS = {
@@ -8,7 +8,7 @@ CUSTOM_SETTINGS = {
         #  MongoDB数据库配置
         'MONGODB_CONNECTION_STRING' : "mongodb://localhost:27017/",
         "MONGODB_DATABASE": "weibo",         
-        "MONGODB_COLLECTION": "search_keywords",  
+        "MONGODB_COLLECTION": "homepage",  
         # 下载处理器配置
         'DOWNLOAD_HANDLERS':  {
         "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
@@ -43,5 +43,5 @@ CUSTOM_SETTINGS = {
         }
     }
 
-KEYWORDS = "郑州地铁"  # 搜索关键词
-MAXSCOUNT = 10 # 最大爬取数量
+# KEYWORDS = "郑州地铁"  # 主页动态流不需要关键字
+MAXSCOUNT = 50 # 最大爬取数量

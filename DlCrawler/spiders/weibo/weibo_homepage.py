@@ -1,18 +1,17 @@
 import scrapy
 import pathlib
-from DlCrawler.configs.weibo.weibo_search_keywords_config import CUSTOM_SETTINGS, MAXSCOUNT,KEYWORDS
+from DlCrawler.configs.weibo.weibo_homepage_config import CUSTOM_SETTINGS, MAXSCOUNT
 from scrapy_playwright.page import PageMethod
 import random
 from DlCrawler.items import WeiboSearchKeywordsItem
 
 class WeiboSearchKeywordsSpider(scrapy.Spider):
-    name = "weibo_search_keywords"
+    name = "weibo_homepage"
     allowed_domains = ["weibo.com"]
     start_urls = ["https://weibo.com"]
     current_page = 1
     custom_settings = CUSTOM_SETTINGS
     maxscount = MAXSCOUNT
-    keywords = KEYWORDS
 
     def start_requests(self):
         for url in self.start_urls:
@@ -26,15 +25,19 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
 
     async def parse(self, response):
         page = response.meta['playwright_page']
+        # 等待30秒登录时间
+        # 登录默认爬取"首页"标签下的内容, 不登录默认爬取"推荐-热门"下的内容
+        # 关于标签的参数配置及相关逻辑,会在后续版本中添加
         await page.wait_for_timeout(30000)
-         # 数据提取
+
+        # 初始化必要对象 
         html = await page.content()
         selector = scrapy.Selector(text=html)
         success_count  = 0
         previous_height = await page.evaluate("document.body.scrollHeight")
-        seen_links = set()  # 用于记录已采集的链接，防止重复
+        seen_links = set()  # 记录已采集的链接，防止重复
 
-        # 临时调试,需要时自行取消注释
+        # # 临时调试,需要时自行取消注释
         # try:
         #     debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
         #     debug_dir.mkdir(parents=True, exist_ok=True)
@@ -97,7 +100,7 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
             previous_height = new_height
             html = await page.content()
             selector = scrapy.Selector(text=html)
-
+# 简单数据清洗
 def extract_numeric_value(text_list):
     combined = ''.join([t.strip() for t in text_list if t.strip()])
     numeric = ''.join(filter(str.isdigit, combined))
