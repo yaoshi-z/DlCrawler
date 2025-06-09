@@ -47,6 +47,7 @@ class WeiboHomepageItem(scrapy.Item):
     likes = scrapy.Field()         # 点赞数
 
 class WeiboSearchKeywordsItem(scrapy.Item):
+    keyword = scrapy.Field()
     user_name = scrapy.Field()     # 用户名
     verified_type = scrapy.Field() # 认证类型（如：超话主持人）
     content = scrapy.Field()       # 正文内容

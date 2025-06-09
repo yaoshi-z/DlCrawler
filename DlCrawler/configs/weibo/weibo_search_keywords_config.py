@@ -1,5 +1,5 @@
-# weibo_homepage_config.py
-from scrapy_playwright.page import PageMethod
+# weibo_search_keywords_config.py
+
 
 CUSTOM_SETTINGS = {
         #  请求配置
@@ -29,7 +29,7 @@ CUSTOM_SETTINGS = {
         'PLAYWRIGHT_CONTEXT_ARGS': {
             "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
             "extra_http_headers": {
-            "Referer": "https://tieba.baidu.com/",
+            "Referer": "https://s.weibo.com/",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
          },
             "viewport": {"width": 1920, "height": 1080}
@@ -43,5 +43,5 @@ CUSTOM_SETTINGS = {
         }
     }
 
-KEYWORDS = ["郑州地铁"]  # 关键字列表
+KEYWORDS = "郑州地铁"  # 关键字列表
 MAXSCOUNT = 50 # 最大爬取数量
