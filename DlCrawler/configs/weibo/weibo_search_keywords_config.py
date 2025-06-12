@@ -43,5 +43,5 @@ CUSTOM_SETTINGS = {
         }
     }
 
-KEYWORDS = "郑州地铁"  # 关键字列表
+KEYWORDS = "胖东来"  # 关键字列表
 MAXSCOUNT = 50 # 最大爬取数量

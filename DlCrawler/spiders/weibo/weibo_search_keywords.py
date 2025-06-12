@@ -6,7 +6,7 @@ import pathlib
 from urllib.parse import quote
 from datetime import datetime, timedelta
 import re
-
+import json
 class WeiboSearchKeywordsSpider(scrapy.Spider):
     name = "weibo_search_keywords"
     allowed_domains = ["s.weibo.com"]
@@ -14,16 +14,19 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
     maxscount = MAXSCOUNT
     keywords = KEYWORDS
     current_page = 1
+    success_count  = 0
     encode_keywords = quote(keywords)
     start_urls = [f"https://s.weibo.com/weibo?q={encode_keywords}"]
 
+        
     def start_requests(self):
+
         for url in self.start_urls:
             yield scrapy.Request(
                 url,
                 meta={
                     "playwright": True,  # 启用Playwright处理
-                    "playwright_include_page": True # 包含页面对象
+                    "playwright_include_page": True, # 包含页面对象
                 }
             )
 
@@ -43,7 +46,7 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
         # 初始化必要对象 
         html = await page.content()
         selector = scrapy.Selector(text=html)
-        success_count  = 0
+        
         seen_mid = set()  # 记录已采集的mid
 
         # 临时调试,需要时自行取消注释
@@ -124,16 +127,26 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
             # 点赞量
             likes_elem = card.xpath(f'{base_path}[3]//text()').getall()
             item['likes'] = self.extract_interactions(likes_elem, r'赞')
-            
+            self.success_count += 1  # 全局计数器自增
             yield item
-            success_count += 1
 
             # 达到最大条目数则停止
-            if success_count >= self.maxscount:
-                self.logger.info(f"已爬取 {success_count} 条数据，达到上限，停止爬取。")
+            if self.success_count >= self.maxscount:
+                self.logger.info(f"已爬取 {self.success_count} 条数据，达到上限，停止爬取。")
                 await page.close()
                 return
-
+            
+        # 新增：构造下一页请求
+        self.current_page += 1
+        next_url = f"https://s.weibo.com/weibo?q={self.encode_keywords}&page={self.current_page}"
+        yield scrapy.Request(
+            url=next_url,
+            meta={"playwright": True,
+                  "playwright_include_page": True,
+                  "playwright_page": page,
+            },
+            callback=self.parse,
+        )
     # 简单数据清洗
     def extract_numeric_value(self,text_list):
         combined = ''.join([t.strip() for t in text_list if t.strip()])
