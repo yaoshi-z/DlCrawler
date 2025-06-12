@@ -4,3 +4,4 @@ __pycache__/
 debug_files/
 logs/
 .vscode/
+DlCrawler/data
