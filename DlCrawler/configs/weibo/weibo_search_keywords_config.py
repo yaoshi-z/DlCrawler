@@ -17,7 +17,7 @@ CUSTOM_SETTINGS = {
         "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
 
         # Playwright配置
-        "PLAYWRIGHT_PERSISTENT_CONTEXT": True,
+        "PLAYWRIGHT_PERSIST_CONTEXT": True,
         'PLAYWRIGHT_BROWSER_TYPE': "chromium",
         'PLAYWRIGHT_LAUNCH_OPTIONS':  {
             "headless": False,  # 关闭无头模式,显示浏览器窗口

@@ -4,7 +4,8 @@ from scrapy_playwright.page import PageMethod
 from DlCrawler.items import WeiboSearchKeywordsItem
 import pathlib
 from urllib.parse import quote
-
+from datetime import datetime, timedelta
+import re
 
 class WeiboSearchKeywordsSpider(scrapy.Spider):
     name = "weibo_search_keywords"
@@ -32,8 +33,8 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
         # 登录逻辑
         try:
             # 等待登录成功标志
-            await page.wait_for_selector("//div[@class='hot-band-tabs-list-item-content-title']", timeout=60000)
-            self.logger.info("登录成功并检测到热搜内容")
+            await page.wait_for_selector("//div[@class='card-wrap']", timeout=60000)
+            self.logger.info("登录成功并检测搜索内容")
         except Exception as e:
             self.logger.error(f"等待登录超时或页面未正确加载: {e}")
             await page.close()
@@ -43,74 +44,144 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
         html = await page.content()
         selector = scrapy.Selector(text=html)
         success_count  = 0
-        previous_height = await page.evaluate("document.body.scrollHeight")
-        seen_links = set()  # 记录已采集的链接，防止重复
+        seen_mid = set()  # 记录已采集的mid
 
         # 临时调试,需要时自行取消注释
-        try:
-            debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
-            debug_dir.mkdir(parents=True, exist_ok=True)
-            with open(f"{debug_dir}/{self.name}_p{self.current_page}.html", "w", encoding="utf-8") as f:
-                f.write(html)
-        except Exception as e:
-            self.logger.info(f"保存文件失败：{e}")
+        # try:
+        #     debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
+        #     debug_dir.mkdir(parents=True, exist_ok=True)
+        #     with open(f"{debug_dir}/{self.name}_p{self.current_page}.html", "w", encoding="utf-8") as f:
+        #         f.write(html)
+        # except Exception as e:
+        #     self.logger.info(f"保存文件失败：{e}")
 
-        while True:
-            items_xpath = '//article[contains(@class, "Feed_wrap_3v9LH")]'
-            articles = selector.xpath(items_xpath)
+        cards_xpath = '//div[contains(@class, "card-wrap")]'
+        cards = selector.xpath(cards_xpath)
 
-            for article in articles:
-                time_elem = article.xpath('.//a[contains(@class, "head-info_time_6sFQg")]')
-                content_link = time_elem.xpath('@href').get()
+        for card in cards:
 
-                # 跳过已采集的链接
-                if content_link in seen_links:
-                    continue
+            mid = card.xpath('./@mid').get(default='')
 
-                seen_links.add(content_link)  # 添加到已采集集合中
+            # 跳过已采集的mid
+            if mid in seen_mid:
+                self.logger.info(f"已跳过重复的 mid: {mid}")
+                continue
 
-                item = WeiboSearchKeywordsItem
-                item['keyword'] = self.keywords 
-                item['content_link'] = content_link
-                item['user_name'] = article.xpath('.//a[contains(@class, "head_name_24eEB")]/span/@title').get()
-                item['verified_type'] = article.xpath('.//div[contains(@class, "head-info_source_2zcEX")]/text()').get()
+            seen_mid.add(mid)  # 添加到已采集集合中
 
-                content_parts = article.xpath('.//div[contains(@class, "detail_wbtext_4CRf9")]//text()').getall()
-                item['content'] = ' '.join([p.strip() for p in content_parts if p.strip()])
+            item = WeiboSearchKeywordsItem()
+            item['mid'] = mid
+            item['keyword'] = self.keywords 
+            item['content_link'] = f"https://weibo.com/detail/{mid}"
+            item['user_name'] = card.xpath('.//a[contains(@class, "name")]/@nick-name').get()
 
-                item['post_time'] = time_elem.xpath('text()').get()
+            # 提取认证类型
+            vip_icon = card.xpath('.//div[@class="user_vip_icon_container"]/img/@src').get()
+            if vip_icon:
+                verified_type = pathlib.Path(vip_icon).stem
+            else:
+                verified_type = "普通用户"
+            item['verified_type'] = verified_type
+            
+            # 优先提取 full 版本的 p 标签，否则回退到非 full 版本
+            content_p = card.xpath('.//p[@node-type="feed_list_content_full"] | .//p[@node-type="feed_list_content"]')
 
-                # 定位互动区域并按顺序提取转发、评论、点赞
-                base_path = './/div[@class="woo-box-flex woo-box-alignCenter toolbar_left_2vlsY toolbar_main_3Mxwo"]/div[contains(@class, "toolbar_item_1ky_D")]'
-                item['reposts'] = article.xpath(f'({base_path})[1]//text()').getall()
-                item['comments'] = article.xpath(f'({base_path})[2]//text()').getall()
-                item['likes'] = article.xpath(f'({base_path})[3]//text()').getall()
-                item['reposts'] = extract_numeric_value(item.get('reposts', []))
-                item['comments'] = extract_numeric_value(item.get('comments', []))
-                item['likes'] = extract_numeric_value(item.get('likes', []))
-                yield item
-                success_count += 1
+            if content_p:
+                # 提取文本并过滤 a 标签内容
+                content_parts = content_p.xpath('.//text()[not(parent::a)]').getall()
+                content = ' '.join([p.strip() for p in content_parts if p.strip()])
+            else:
+                content = "无内容"
+            item['content'] = content
+            
+             # 提取原始时间文本
+            time_elem = card.xpath('.//div[@class="from"]/a[1]')
+            time_str = ''.join(time_elem.xpath('.//text()').getall()).strip()
+             # 解析时间并格式化
+            try:
+                post_time = self.parse_weibo_time(time_str)
+            except Exception as e:
+                self.logger.warning(f"时间解析失败: {e}")
+                post_time = datetime.now().strftime("%Y%m%d%H%M")  # 回退到当前时间
 
-                # 达到最大条目数则停止
-                if success_count >= self.maxscount:
-                    self.logger.info(f"已爬取 {success_count} 条数据，达到上限，停止爬取。")
-                    await page.close()
-                    return
+            item['post_time'] = post_time
 
-            # 滚动加载
-            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await page.wait_for_timeout(5000)
-            new_height = await page.evaluate("document.body.scrollHeight")
+            # 提取设备来源
+            device = card.xpath('.//div[@class="from"]/a[2]/text()').get()
+            item['device_source'] = device.strip() if device and device.strip() else "未知设备"
 
-            if new_height == previous_height:
-                self.logger.info("页面无新内容加载，结束滚动。")
-                break
+            # 定位互动区域并按顺序提取转发、评论、点赞
+            base_path = './/div[@class="card-act"]/ul/li'
 
-            previous_height = new_height
-            html = await page.content()
-            selector = scrapy.Selector(text=html)
-        # 简单数据清洗
-        def extract_numeric_value(text_list):
-            combined = ''.join([t.strip() for t in text_list if t.strip()])
-            numeric = ''.join(filter(str.isdigit, combined))
-            return int(numeric) if numeric else 0
+            # 转发量
+            reposts_elem = card.xpath(f'{base_path}[1]//text()').getall()
+            item['reposts'] = self.extract_interactions(reposts_elem, r'转发')
+            
+            # 评论量
+            comments_elem = card.xpath(f'{base_path}[2]//text()').getall()
+            item['comments'] = self.extract_interactions(comments_elem, r'评论')
+            
+            # 点赞量
+            likes_elem = card.xpath(f'{base_path}[3]//text()').getall()
+            item['likes'] = self.extract_interactions(likes_elem, r'赞')
+            
+            yield item
+            success_count += 1
+
+            # 达到最大条目数则停止
+            if success_count >= self.maxscount:
+                self.logger.info(f"已爬取 {success_count} 条数据，达到上限，停止爬取。")
+                await page.close()
+                return
+
+    # 简单数据清洗
+    def extract_numeric_value(self,text_list):
+        combined = ''.join([t.strip() for t in text_list if t.strip()])
+        numeric = ''.join(filter(str.isdigit, combined))
+        return int(numeric) if numeric else 0
+    def parse_weibo_time(self,time_str):
+        """解析微博时间格式"""
+        now = datetime.now()
+        parsed_time = now  # 默认当前时间
+        
+        # 情况1: x分钟前/x秒前
+        minute_match = re.search(r'(\d+)分钟前', time_str)
+        second_match = re.search(r'(\d+)秒前', time_str)
+        
+        if minute_match:
+            minutes = int(minute_match.group(1))
+            parsed_time = now - timedelta(minutes=minutes)
+        elif second_match:
+            seconds = int(second_match.group(1))
+            parsed_time = now - timedelta(seconds=seconds)
+        
+        # 情况2: 今天HH:mm
+        today_match = re.search(r'今天(\d{2}:\d{2})', time_str)
+        if today_match:
+            time_part = today_match.group(1)
+            parsed_time = datetime.strptime(f"{now.strftime('%Y-%m-%d')} {time_part}", "%Y-%m-%d %H:%M")
+        
+        # 情况3: MM月DD日
+        date_match = re.search(r'(\d{2})月(\d{2})日', time_str)
+        if date_match:
+            month, day = map(int, date_match.groups())
+            parsed_time = datetime(now.year, month, day)
+            
+            # 处理跨年场景（如1月日期大于当前月份）
+            if parsed_time.month > now.month:
+                parsed_time = parsed_time.replace(year=now.year - 1)
+        
+        # 情况4: 完整日期（含年月日时分）
+        full_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2})', time_str)
+        if full_match:
+            parsed_time = datetime.strptime(full_match.group(1), "%Y-%m-%d %H:%M")
+        
+        return parsed_time.strftime("%Y%m%d%H%M")
+    
+    # 交互数据解析方法
+    def extract_interactions(self, text_list, keyword):
+        """提取互动数，若含指定关键词则返回 0"""
+        raw_text = ''.join([t.strip() for t in text_list if t.strip()])
+        if re.search(keyword, raw_text):
+            return 0
+        return self.extract_numeric_value(text_list)
