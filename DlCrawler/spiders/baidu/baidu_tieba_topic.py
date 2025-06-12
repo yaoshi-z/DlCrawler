@@ -23,6 +23,10 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
     current_page = 1
 
     custom_settings = CUSTOM_SETTINGS
+    cookies_dir = pathlib.Path(__file__).parent.parent.parent / "data" / "cookies"
+    cookies_dir.mkdir(parents=True, exist_ok=True)  # 自动创建目录
+    cookies_file = cookies_dir / f"{name}_cookies.json"
+
     def start_requests(self):
         for url in self.start_urls:
             yield scrapy.Request(
@@ -33,12 +37,16 @@ class BaiduTiebaTopicSpider(scrapy.Spider):
                         PageMethod("wait_for_selector", "div.t_con.cleafix", timeout=10000),
                         PageMethod("wait_for_timeout",random.randint(1000,3000)),#子列表加载完成
                     ],
+                    "playwright_context_kwargs": {
+                        "storage_state": str(self.cookies_file)  
+                        },
                     "playwright_include_page": True # 包含页面对象
                 }
             )
 
     async def parse(self, response):
         page = response.meta['playwright_page']
+        # await page.context.storage_state(path=self.cookies_file)  # 获取当前页面的cookies
        
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
         await page.wait_for_timeout(random.randint(2000, 5000))  # 随机延迟
