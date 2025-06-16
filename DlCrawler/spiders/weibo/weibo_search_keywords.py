@@ -1,5 +1,5 @@
 import scrapy
-from DlCrawler.configs.weibo.weibo_search_keywords_config import CUSTOM_SETTINGS, MAXSCOUNT,KEYWORDS
+from DlCrawler.configs.weibo.weibo_search_keywords_config import CUSTOM_SETTINGS
 from scrapy_playwright.page import PageMethod
 from DlCrawler.items import WeiboSearchKeywordsItem
 import pathlib
@@ -13,8 +13,8 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
     name = "weibo_search_keywords"
     allowed_domains = ["s.weibo.com"]
     custom_settings = CUSTOM_SETTINGS
-    maxscount = MAXSCOUNT
-    keywords = KEYWORDS
+    maxscount = custom_settings.get('MAXSCOUNT')  
+    keywords = custom_settings.get('KEYWORDS')  
     current_page = 1
     success_count  = 0
     encode_keywords = quote(keywords)

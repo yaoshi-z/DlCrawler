@@ -39,9 +39,14 @@ CUSTOM_SETTINGS = {
         # Scrapy管道配置
 
         'ITEM_PIPELINES': {
-            'DlCrawler.pipelines.AsyncMongoDBPipeline': 300
-        }
+            'DlCrawler.pipelines.AsyncMongoDBPipeline': 300,
+            'DlCrawler.pipelines.CustomExporterPipeline': 900
+        },
+        'EXPORT_FILE_FORMAT': "json",  # 导出文件格式,可选json,csv;默认json
+        'KEYWORDS': "扫地机器人",  # 关键字列表
+        'MAXSCOUNT': 50  # 最大爬取数量
     }
 
-KEYWORDS = "扫地机器人"  # 关键字列表
-MAXSCOUNT = 100 # 最大爬取数量
+# KEYWORDS = "扫地机器人"  # 关键字列表
+# MAXSCOUNT = 50 # 最大爬取数量
+

@@ -5,3 +5,4 @@ debug_files/
 logs/
 .vscode/
 DlCrawler/data
+DlCrawler/exports

@@ -2,6 +2,9 @@ from scrapy.exceptions import DropItem
 import pymongo 
 from motor.motor_asyncio import AsyncIOMotorClient
 from twisted.internet import defer
+import pathlib
+import datetime
+import pandas as pd
         
 class MongoDBPipeline(object):
     def __init__(self,connection_string):
@@ -54,3 +57,41 @@ class AsyncMongoDBPipeline:
         
         await self.db[self.collection].insert_one(dict(item))
         return item
+    
+class CustomExporterPipeline:
+    def __init__(self):
+        self.items = []
+        
+        
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        return pipeline
+    
+    def open_spider(self, spider):
+        self.file_format = spider.settings.get('EXPORT_FILE_FORMAT', 'json')
+        self.keywords = spider.settings.get('KEYWORDS', 'none')
+
+    def process_item(self, item, spider):
+        self.items.append(dict(item))
+        return item
+
+    def close_spider(self, spider):
+        output_dir = pathlib.Path(__file__).parent / "exports"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        formatter_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        df = pd.DataFrame(self.items)
+        if df.empty:
+            spider.logger.warning("没有数据可导出")
+            return
+        try:
+            if self.file_format.lower() == 'json':
+                json_file_path = output_dir / f"{spider.name}_{self.keywords}_{formatter_now}.json"
+                df.to_json(json_file_path, orient='records', force_ascii=False, indent=4)
+
+            elif self.file_format.lower() == 'csv':
+                csv_file_path = output_dir / f"{spider.name}_{self.keywords}_{formatter_now}.csv"
+                df.to_csv(csv_file_path, index=False, encoding="utf-8-sig")
+        except Exception as e:
+            spider.logger.error(f"导出文件时发生错误: {e}")
