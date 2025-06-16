@@ -43,5 +43,5 @@ CUSTOM_SETTINGS = {
         }
     }
 
-KEYWORDS = "范钦龙"  # 关键字列表
+KEYWORDS = "扫地机器人"  # 关键字列表
 MAXSCOUNT = 100 # 最大爬取数量

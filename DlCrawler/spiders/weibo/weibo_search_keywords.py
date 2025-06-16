@@ -144,7 +144,7 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
                 self.logger.info(f"已爬取 {self.success_count} 条数据，达到上限，停止爬取。")
                 await page.close()
                 return
-            
+                
         await self.random_sleep(page)  # 随机休眠
 
         # 新增：构造下一页请求
