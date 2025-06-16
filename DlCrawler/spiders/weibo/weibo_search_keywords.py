@@ -35,7 +35,7 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
     async def parse(self, response):
         page = response.meta['playwright_page']
 
-        # 登录逻辑
+        # 登录逻辑及页面有效性检查
         try:
             # 等待登录成功标志
             await page.wait_for_selector("//div[@class='card-wrap']", timeout=60000)

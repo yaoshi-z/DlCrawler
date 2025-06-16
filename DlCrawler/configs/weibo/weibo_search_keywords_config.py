@@ -1,6 +1,5 @@
 # weibo_search_keywords_config.py
 
-
 CUSTOM_SETTINGS = {
         #  请求配置
         'CONCURRENT_REQUESTS': 1,
@@ -42,11 +41,13 @@ CUSTOM_SETTINGS = {
             'DlCrawler.pipelines.AsyncMongoDBPipeline': 300,
             'DlCrawler.pipelines.CustomExporterPipeline': 900
         },
+
+        # 🔺以上配置非必要不修改
+
+        # 🔻以下配置根据实际需求修改
         'EXPORT_FILE_FORMAT': "json",  # 导出文件格式,可选json,csv;默认json
         'KEYWORDS': "扫地机器人",  # 关键字列表
         'MAXSCOUNT': 50  # 最大爬取数量
     }
 
-# KEYWORDS = "扫地机器人"  # 关键字列表
-# MAXSCOUNT = 50 # 最大爬取数量
 
