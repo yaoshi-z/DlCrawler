@@ -7,6 +7,8 @@ from urllib.parse import quote
 from datetime import datetime, timedelta
 import re
 import json
+import random
+
 class WeiboSearchKeywordsSpider(scrapy.Spider):
     name = "weibo_search_keywords"
     allowed_domains = ["s.weibo.com"]
@@ -39,8 +41,15 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
             await page.wait_for_selector("//div[@class='card-wrap']", timeout=60000)
             self.logger.info("登录成功并检测搜索内容")
         except Exception as e:
-            self.logger.error(f"等待登录超时或页面未正确加载: {e}")
-            await page.close()
+            if self.success_count == 0:
+                self.logger.error(f"等待登录超时或页面未正确加载: {e}")
+                await page.close()
+                self.crawler.engine.close_spider(self, reason="登录失败或超时加载")
+            elif self.success_count <= self.maxscount:
+                self.logger.info(f"已达到最大爬取数量或没有更多内容可爬取: {e}")
+                await page.close()
+                self.crawler.engine.close_spider(self, reason="页面无更多内容")
+            
             return
         
         # 初始化必要对象 
@@ -136,6 +145,8 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
                 await page.close()
                 return
             
+        await self.random_sleep(page)  # 随机休眠
+
         # 新增：构造下一页请求
         self.current_page += 1
         next_url = f"https://s.weibo.com/weibo?q={self.encode_keywords}&page={self.current_page}"
@@ -147,6 +158,11 @@ class WeiboSearchKeywordsSpider(scrapy.Spider):
             },
             callback=self.parse,
         )
+
+    async def random_sleep(self,page):
+        """随机休眠，避免被封禁"""
+        sleep_time = random.uniform(1, 3)
+        await page.wait_for_timeout(int(sleep_time * 1000))
     # 简单数据清洗
     def extract_numeric_value(self,text_list):
         combined = ''.join([t.strip() for t in text_list if t.strip()])
