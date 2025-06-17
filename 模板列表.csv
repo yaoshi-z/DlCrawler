@@ -1,2 +1,7 @@
-编号,模板位置,模板名称,字段说明
+编号,模板文件,模板说明,字段说明
 1001,baidu/baidu_tieba_topic.py,百度贴吧指定吧主题帖爬虫模板,吧名/主贴标题/内容/作者/回复数
+1002,baidu/baidu_search_keywords.py,百度搜索关键词爬虫模板,关键词/标题/链接/摘要
+2001,douban/douban_movie_chart.py,豆瓣电影榜单爬虫模板,电影名称/评分/链接/简介
+3001,toscape/quote.py,ToScape样例模板,标题/链接/内容/作者/发布时间
+4001,weibo/weibo_homepage.py,微博首页爬虫模板,用户名/微博内容/发布时间/转发数/评论数/点赞数
+4002,weibo/weibo_search_keywords.py,微博搜索关键词爬虫模板,关键词/微博内容/发布时间/转发数/评论数/点赞数
