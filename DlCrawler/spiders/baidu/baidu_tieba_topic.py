@@ -1,5 +1,12 @@
-# scrapy==2.12.0
-# playwright==1.52.0
+# -*- coding: utf-8 -*-
+"""
+- 模板名称
+    模板编号: 1001
+    模板名称: 百度贴吧指定吧主题帖爬虫模板
+--------------------
+功能：提取指定贴吧的帖子列表信息（标题、内容、作者、回复数等）
+使用：爬取前需在baidu_tieba_topic_config.py中设置推荐的配置参数
+"""
 
 import scrapy
 from urllib.parse import quote,unquote
