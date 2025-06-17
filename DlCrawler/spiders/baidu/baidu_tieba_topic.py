@@ -6,7 +6,7 @@ from urllib.parse import quote,unquote
 from datetime import datetime
 from scrapy_playwright.page import PageMethod
 from DlCrawler.items import BaiduTiebaTopicItem
-from DlCrawler.configs.baidu.baidu_tieba_topic_config import CUSTOM_SETTINGS, MAXPAGE,TOPIC_NAME
+from DlCrawler.configs.baidu.baidu_tieba_topic_config import CUSTOM_SETTINGS
 import random
 import json
 import pathlib
@@ -14,12 +14,12 @@ import pathlib
 class BaiduTiebaTopicSpider(scrapy.Spider):
     name = "baidu_tieba_topic"
     allowed_domains = ["tieba.baidu.com"]
-    topic_name = TOPIC_NAME  # 贴吧主题名称
+    topic_name = CUSTOM_SETTINGS['KEYWORDS']  # 贴吧主题名称
     encode_topic_name = quote(topic_name)
     start_urls = [f"https://tieba.baidu.com/f?kw={encode_topic_name}&ie=utf-8"]
 
     # 最大翻页数
-    max_page = MAXPAGE
+    max_page = CUSTOM_SETTINGS['MAXPAGE']
     current_page = 1
 
     custom_settings = CUSTOM_SETTINGS

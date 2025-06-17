@@ -1,4 +1,6 @@
 # baidu_tieba_topic_config.py
+
+
 from scrapy_playwright.page import PageMethod
 
 CUSTOM_SETTINGS = {
@@ -41,9 +43,19 @@ CUSTOM_SETTINGS = {
         'DOWNLOADER_MIDDLEWARES': {},
         # Scrapy管道配置
         'ITEM_PIPELINES': {
-            'DlCrawler.pipelines.AsyncMongoDBPipeline': 300
-        }
+            'DlCrawler.pipelines.AsyncMongoDBPipeline': 300,
+            'DlCrawler.pipelines.CustomExporterPipeline': 900
+
+        },
+        # 🔺以上配置非必要不修改
+
+        # 🔻以下配置根据实际需求修改
+        'EXPORT_FILE_FORMAT': "json",
+
+        # 该模板要求KEYWORDS参数值必须完全匹配贴吧主题名称,否则可能无法正确获取数据!
+        # 贴吧主题名称,使用keywords参数名是为了与其他爬虫保持一致性
+        'KEYWORDS': "老天下",  
+        'MAXPAGE': 2  # 最大翻页数
     }
 
-TOPIC_NAME = "郑州地铁"  # 贴吧主题名称
-MAXPAGE = 1  # 最大翻页数
+

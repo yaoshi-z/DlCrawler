@@ -79,7 +79,7 @@ class CustomExporterPipeline:
     def close_spider(self, spider):
         output_dir = pathlib.Path(__file__).parent / "exports"
         output_dir.mkdir(parents=True, exist_ok=True)
-        formatter_now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        formatter_now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
         df = pd.DataFrame(self.items)
         if df.empty:
