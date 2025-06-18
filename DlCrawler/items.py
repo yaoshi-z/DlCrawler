@@ -44,8 +44,7 @@ class DoubanMovieItem(scrapy.Item):
 
 #编号3001 ToScape名言模板
 class DlcrawlerItem(scrapy.Item):
-    #字段声明
-    text = scrapy.Field()
+    text = scrapy.Field() 
     author = scrapy.Field()
     tags = scrapy.Field()
 
@@ -57,19 +56,19 @@ class WeiboHomepageItem(scrapy.Item):
     verified_type = scrapy.Field() # 认证类型（如：超话主持人）
     content = scrapy.Field()       # 正文内容
     content_link = scrapy.Field()  # 正文链接
-    post_time = scrapy.Field()     # 格式化的时间戳
+    post_time = scrapy.Field()     # 发布时间
     reposts = scrapy.Field()       # 转发数
     comments = scrapy.Field()      # 评论数
     likes = scrapy.Field()         # 点赞数
 # 编号4002 微博搜索关键词爬虫模板
 class WeiboSearchKeywordsItem(scrapy.Item):
-    keyword = scrapy.Field()
-    mid  = scrapy.Field()
+    keyword = scrapy.Field()       # 关键词
+    mid  = scrapy.Field()          # MID
     user_name = scrapy.Field()     # 用户名
     verified_type = scrapy.Field() # 认证类型（如：超话主持人）
     content = scrapy.Field()       # 正文内容
     content_link = scrapy.Field()  # 正文链接
-    post_time = scrapy.Field()     # 格式化的时间戳
+    post_time = scrapy.Field()     # 发布时间
     device_source = scrapy.Field() # 设备来源
     reposts = scrapy.Field()       # 转发数
     comments = scrapy.Field()      # 评论数
