@@ -23,6 +23,14 @@ class BaiduSearchKeywordsItem(scrapy.Item):
     is_ad = scrapy.Field()  
     summary = scrapy.Field()
 
+# 编号1003 百度图片关键词爬虫模板
+class BaiduImgKeywordsItem(scrapy.Item):
+    keyword = scrapy.Field()
+    batch_id = scrapy.Field()
+    title = scrapy.Field()
+    bd_url = scrapy.Field()
+    raw_url = scrapy.Field()
+
 # 编号2001 豆瓣电影榜单爬虫模板   
 class DoubanMovieItem(scrapy.Item):
     # 电影条目字段声明
