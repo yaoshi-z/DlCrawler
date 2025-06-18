@@ -16,15 +16,12 @@ class BaiduTiebaTopicItem(scrapy.Item):
 # 编号1002 百度搜索关键词爬虫模板
 class BaiduSearchKeywordsItem(scrapy.Item):
     keyword = scrapy.Field()
+    batch_id = scrapy.Field()
     title = scrapy.Field()
-    url = scrapy.Field()
-    rank = scrapy.Field()
-    tag = scrapy.Field()
-    metadata = scrapy.Field()
+    bd_url = scrapy.Field()
+    raw_url = scrapy.Field()
+    is_ad = scrapy.Field()  
     summary = scrapy.Field()
-    timestamp = scrapy.Field()
-    source = scrapy.Field()
-    data_feedback = scrapy.Field()
 
 # 编号2001 豆瓣电影榜单爬虫模板   
 class DoubanMovieItem(scrapy.Item):
