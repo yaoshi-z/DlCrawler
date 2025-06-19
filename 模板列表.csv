@@ -1,7 +1,7 @@
 编号,模板文件,模板说明,字段说明,备注
 1001,baidu/baidu_tieba_topic.py,百度贴吧指定吧主题帖爬虫模板,吧名/主贴标题/内容/作者/回复数
 1002,baidu/baidu_search_keywords.py,百度搜索关键词爬虫模板,关键词/批次号/标题/百度跳转链接/页面原始链接/广告标记/摘要
-1003,baidu/baidu_img_keywords.py,百度图片关键词爬虫模板,关键词/批次号/图片百度链接/图片源链接/广告标记
+1003,baidu/baidu_img_keywords.py,百度图片关键词爬虫模板,关键词/批次号/标题/图片百度链接/图片源链接/广告标记
 2001,douban/douban_movie_chart.py,豆瓣电影榜单爬虫模板,url/标题/导演/编剧/作者/类型/国家/语言/时长/上映日期/别名/imdb/评分/星级描述/摘要
 3001,toscape/quote.py,ToScape样例模板,内容/作者/标签,简单试验样例
 4001,weibo/weibo_homepage.py,微博首页爬虫模板,用户名/认证类型/正文内容/正文链接/发布时间/转发数/评论数/点赞数
