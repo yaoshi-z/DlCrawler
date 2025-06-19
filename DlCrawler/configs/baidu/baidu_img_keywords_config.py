@@ -56,7 +56,7 @@ CUSTOM_SETTINGS = {
         # 该模板要求KEYWORDS参数值必须完全匹配贴吧主题名称,否则可能无法正确获取数据!
         # 贴吧主题名称,使用keywords参数名是为了与其他爬虫保持一致性
         'KEYWORDS': "郑州地铁",  
-        'MAXCOUNT': 50  # 最大获取数量
+        'MAXCOUNT': 200  # 最大获取数量
     }
 
 
