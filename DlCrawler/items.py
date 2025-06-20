@@ -82,4 +82,18 @@ class WeiboSearchKeywordsItem(scrapy.Item):
     reposts = scrapy.Field()       # 转发数
     comments = scrapy.Field()      # 评论数
     likes = scrapy.Field()         # 点赞数
+
+# 编号5001 Boss直聘指定职位_列表信息爬虫模板
+class BossJobsListItem(scrapy.Item):
+    batch_id = scrapy.Field()
+    city = scrapy.Field()
+    position_name = scrapy.Field()
+    position_url = scrapy.Field()
+    salary = scrapy.Field()
+    experience = scrapy.Field()
+    education = scrapy.Field()
+    company_name = scrapy.Field()
+    company_url = scrapy.Field()
+    work_area = scrapy.Field()
+    
     
