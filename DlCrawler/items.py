@@ -96,4 +96,9 @@ class BossJobsListItem(scrapy.Item):
     company_url = scrapy.Field()
     work_area = scrapy.Field()
     
+# 编号6001 淘宝_搜索_关键字商品信息爬虫模板
+class TaobaoSearchKeywordsItem(scrapy.Item):
+    batch_id = scrapy.Field()
+    keywords = scrapy.Field()
+
     
