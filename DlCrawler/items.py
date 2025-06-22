@@ -100,5 +100,15 @@ class BossJobsListItem(scrapy.Item):
 class TaobaoSearchKeywordsItem(scrapy.Item):
     batch_id = scrapy.Field()
     keywords = scrapy.Field()
-
+    shop_name = scrapy.Field()
+    shop_url = scrapy.Field()
+    location = scrapy.Field()
+    product_id = scrapy.Field()
+    product_title = scrapy.Field()
+    product_price = scrapy.Field()
+    product_url = scrapy.Field()
+    product_img = scrapy.Field()
+    paid_count = scrapy.Field()
+    page_num = scrapy.Field()
+   
     
