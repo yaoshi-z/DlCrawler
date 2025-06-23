@@ -126,25 +126,18 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
     async def parse(self, response):
         page = response.meta['playwright_page']
 
-        # await page.wait_for_selector("div#pageContent",timeout=60000)
-
         # 增强的人类形为模拟
         await self.random_scroll(page)  # 分段滚动
         # await self.random_mouse_actions(page)  # 鼠标交互
         await self.random_sleep(page)  # 随机停顿
 
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
-        # await page.wait_for_load_state("networkidle")  # 等待网络空闲
-
-        # # 初始化一些必要对象,分页加载不适用
-        # seen_bd_urls = set()
-        # previous_height = await page.evaluate("document.body.scrollHeight")
-        
 
 
-        # 核心解析逻辑
+        # 初始化必要对象
         html = await page.content()
         selector = scrapy.Selector(text=html)
+
         # 临时调试,需要时自行取消注释
         try:
             debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
@@ -163,22 +156,22 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
 
             item['keywords'] = self.keywords
             item['batch_id'] = self.now
-            item['shop_name'] = item_node.css('span.shopNameText--DmtlsDKm').get('').strip()
-            item['shop_url'] = item_node.css('a.shopName--hdF527QA::attr(href)').get('').strip()
-            # item['position_name'] = item_node.css('span.positionName--3jz5ZY_5').get('').strip()
+            item['shop_name'] = item_node.css('span.shopNameText--DmtlsDKm::text').get('').strip()
+            item['shop_url'] = response.urljoin(item_node.css('a.shopName--hdF527QA::attr(href)').get('').strip())
 
             location_parts = item_node.css('div.procity--wlcT2xH9 span::text').getall()
             item['location'] = ' '.join(location_parts)
 
             item['product_id'] = item_node.css('a[data-spm-protocol]::attr(id)').get('').strip()
-            item['product_url'] = item_node.css('a[data-spm-protocol]::attr(href)').get('').strip()
+            item['product_url'] = response.urljoin(item_node.css('a[data-spm-protocol]::attr(href)').get('').strip())
 
-            title_parts = item_node.css('div.descWrapper--Ta96FeyX.adaptMod--k5rdyVB_::text').getall()
-            item['product_title'] = ''.join(title_parts)
+            title_parts = item_node.xpath('.//div[contains(@class,"title")]//text()').getall()
+            item['product_title'] = ''.join([text.strip() for text in title_parts if text.strip()])
 
             item['product_img'] = item_node.css('img.mainImg--sPh_U37m::attr(src)').get('').strip()
 
-            item['product_price'] = item_node.css('span.priceInt--yqqZMJ5a::text').get('').strip()
+            price_parts = item_node.xpath('.//div[@class="innerPriceWrapper--aAJhHXD4"]//text()').getall()
+            item['product_price'] = ''.join([text.strip() for text in price_parts if text.strip()])
 
             item['paid_count'] = item_node.css('span.realSales--XZJiepmt::text').get('').strip()
             item['page_num'] = self.current_page
@@ -193,25 +186,59 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
                 await page.close()
                 return
             
-        self.current_page += 1
                         
-            # await self.random_sleep(page)  # 随机休眠
+        await self.random_sleep(page)  # 随机休眠
 
-            # # 构造滚动加载逻辑
-            # await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            # await page.wait_for_load_state("networkidle")
-            # new_height = await page.evaluate("document.body.scrollHeight")
+        # 分页逻辑
+        try:
+            # 定位下一页按钮
+            next_button = page.locator("button:has-text('下一页')")
+            
+            # 检查按钮是否可点击
+            is_disabled = await next_button.is_disabled()
+            if is_disabled:
+                self.logger.info("已到达最后一页，结束爬取")
+                await page.close()
+                raise scrapy.exceptions.CloseSpider("已到达最后一页")
 
-            # # 终止条件1：滚动高度不变
-            # if new_height == previous_height:
-            #     self.logger.info("页面无新内容加载，结束滚动。")
-            #     await page.close()
-            #     return
+            # 执行点击操作并等待导航完成
+            await next_button.click()
+            
+            
+            # 等待页面加载完成（根据实际页面调整选择器）
+            await page.wait_for_selector("div.tbpc-col.search-content-col", timeout=30000)
 
-            # previous_height = new_height
-            # html = await page.content()
-            # selector = scrapy.Selector(text=html)
-        
+            self.current_page += 1
+            
+            new_url = page.url
+            self.logger.info(f"已切换到第{self.current_page}页，当前URL：{new_url}")
+            
+            # 增加随机等待时间模拟人类行为
+            await self.random_sleep(page)
+            
+            # 继续解析当前页面内容
+            yield scrapy.Request(
+                url=new_url,
+                meta={
+                    "playwright": True,
+                    "playwright_include_page": True,
+                    "playwright_page": page,
+                },
+                callback=self.parse,
+                dont_filter=True
+            )
+            
+        except Exception as e:
+            # 检测验证码
+            html = await page.content()
+            if "验证码" in html or "auth" in page.url:
+                self.logger.warning("检测到反爬验证，暂停爬取")
+                await page.wait_for_timeout(60_000)
+            else:
+                self.logger.error(f"分页失败: {e}")
+                await page.close()
+                
+    
 
     async def random_sleep(self,page):
         """自然正态分布式休眠，增强反爬"""
@@ -248,7 +275,7 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
             await page.mouse.move(x, y)
             await asyncio.sleep(random.uniform(0.2, 0.5))  # 短暂停顿
         
-        # 50%概率悬停商品卡片（示例）
+        # 50%概率悬停商品卡片
         if random.random() > 0.5:  
             cards = await page.query_selector_all('xpath=//div[contains(@class, "tbpc-col") and contains(@class, "search-content-col")]')
             if cards:
