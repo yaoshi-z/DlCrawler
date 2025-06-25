@@ -29,10 +29,9 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
     allowed_domains = ["taobao.com"]
     keywords = CUSTOM_SETTINGS['KEYWORDS']  # 搜索关键词
     encode_keywords = quote(keywords)
-    
+    current_page = 1  # 当前页码
     start_urls = [
-                f"https://login.taobao.com/",
-                f"https://s.taobao.com/search?q={encode_keywords}"
+                f"https://s.taobao.com/search?page={current_page}&q={encode_keywords}&tab=all"
                 ]
     
     # 加载配置参数
@@ -42,7 +41,7 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
     max_count = CUSTOM_SETTINGS['MAXCOUNT']
     success_count = 0
 
-    current_page = 1  # 当前页码
+    
     retries = 0
 
     now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -64,7 +63,7 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
                 },  
                 "playwright_include_page": True # 包含页面对象
             },
-            callback=self.verify_login
+            callback=self.parse
         )
         else:
             yield scrapy.Request(
@@ -73,62 +72,23 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
                 "playwright": True,  # 启用Playwright处理  
                 "playwright_include_page": True # 包含页面对象
             },
-            callback=self.verify_login
+            callback=self.parse
         )
-        
-
-    async def verify_login(self, response):
-        page = response.meta['playwright_page']
-        try:
-            # 登录成功逻辑
-
-            # 验证登录是否成功
-            await page.wait_for_selector("div[class*='accountInfo']",timeout=60000) 
-            await page.context.storage_state(path=self.cookies_file)
-            self.logger.info("已登录并更新cookies,开始采集数据")
-                
-            #登录后发起搜索模式请求
-            yield scrapy.Request(
-                self.start_urls[1],
-                meta={
-                    "playwright": True,  # 启用Playwright处理
-                    "playwright_context_kwargs": {
-                        "storage_state": str(self.cookies_file)
-                    },  
-                    "playwright_include_page": True,
-                     "playwright_page": page # 包含页面对象
-                },
-                callback=self.parse
-            )
-            
-           
-        except Exception as e:
-            self.logger.error(f"登录失败: {e},请检查cookies或账号密码是否正确")
-            if self.cookies_file.exists():  # 删除无效cookies
-                self.cookies_file.unlink()
-
-            # 计数当前失败次数
-            self.retries += 1
-            if self.retries >= 2:
-                self.logger.error("登录失败次数过多，请检查cookies或账号密码是否正确")
-                await page.close()
-                raise scrapy.exceptions.CloseSpider("登录失败")
-
-            yield scrapy.Request(
-                self.start_urls[0],
-                meta = {'playwright': True, 
-                        'playwright_page_coroutine': 'goto'},
-                callback=self.verify_login, 
-                dont_filter=True,
-                max_retry_times=3
-                )
 
     async def parse(self, response):
         page = response.meta['playwright_page']
+        if "current_page" in response.meta:
+            self.current_page = response.meta["current_page"]
+        try:    
+            await page.wait_for_selector("span.shopNameText--DmtlsDKm",timeout=60000)
+            await page.context.storage_state(path=self.cookies_file)
+        except Exception as e:
+            self.logger.info(f"等待元素超时,登录失败,程序即将关闭,稍候重试：{e}")
+            await page.close()
+            return
 
-        # 增强的人类形为模拟
+        # 人类形为模拟
         await self.random_scroll(page)  # 分段滚动
-        # await self.random_mouse_actions(page)  # 鼠标交互
         await self.random_sleep(page)  # 随机停顿
 
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
@@ -200,29 +160,26 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
                 self.logger.info("已到达最后一页，结束爬取")
                 await page.close()
                 raise scrapy.exceptions.CloseSpider("已到达最后一页")
-
-            # 执行点击操作并等待导航完成
-            await next_button.click()
-            
-            
-            # 等待页面加载完成（根据实际页面调整选择器）
-            await page.wait_for_selector("div.tbpc-col.search-content-col", timeout=30000)
-
-            self.current_page += 1
-            
-            new_url = page.url
-            self.logger.info(f"已切换到第{self.current_page}页，当前URL：{new_url}")
-            
-            # 增加随机等待时间模拟人类行为
-            await self.random_sleep(page)
             
             # 继续解析当前页面内容
             yield scrapy.Request(
-                url=new_url,
+                url=page.url,
                 meta={
                     "playwright": True,
                     "playwright_include_page": True,
                     "playwright_page": page,
+                    "playwright_page_methods": [
+                     # 等待随机时间（模拟人类行为）
+                    PageMethod("wait_for_timeout", random.randint(1500, 4000)),
+                     # 点击下一页按钮
+                    PageMethod("click", "button:has-text('下一页')"),
+                     # 等待新页面加载完成
+                    PageMethod("wait_for_selector", "span.shopNameText--DmtlsDKm", timeout=60000)
+            ],
+            "playwright_context_kwargs": {
+                "storage_state": str(self.cookies_file)
+            },
+                    "current_page": self.current_page+1,
                 },
                 callback=self.parse,
                 dont_filter=True
@@ -237,8 +194,6 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
             else:
                 self.logger.error(f"分页失败: {e}")
                 await page.close()
-                
-    
 
     async def random_sleep(self,page):
         """自然正态分布式休眠，增强反爬"""
@@ -262,23 +217,3 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
             
             await page.evaluate(f"window.scrollTo(0, {scroll_to})")
             await asyncio.sleep(random.uniform(0.5, 1.5))  # 每段间隔0.5-1.5秒
-
-    async def random_mouse_actions(self, page):
-        """模拟人类鼠标行为"""
-        viewport_size_dict = await page.viewport_size()
-        width, height = viewport_size_dict['width'], viewport_size_dict['height']
-        
-        # 随机移动鼠标（2-4次）
-        for _ in range(random.randint(2, 4)):
-            x = random.uniform(100, width - 100)  # 限制在可视区域中间
-            y = random.uniform(100, height - 100)
-            await page.mouse.move(x, y)
-            await asyncio.sleep(random.uniform(0.2, 0.5))  # 短暂停顿
-        
-        # 50%概率悬停商品卡片
-        if random.random() > 0.5:  
-            cards = await page.query_selector_all('xpath=//div[contains(@class, "tbpc-col") and contains(@class, "search-content-col")]')
-            if cards:
-                target = random.choice(cards)  # 随机选择一个商品
-                await target.hover()
-            await asyncio.sleep(random.uniform(0.5, 1.2))  # 悬停时间
