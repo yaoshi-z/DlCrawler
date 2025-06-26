@@ -111,4 +111,16 @@ class TaobaoSearchKeywordsItem(scrapy.Item):
     paid_count = scrapy.Field()
     page_num = scrapy.Field()
    
+# 编号7001：全国公共资源_搜索_关键字公示信息爬虫模板
+class GgzySearchKeywordsItem(scrapy.Spider):
+    batch_id = scrapy.Field()
+    keywords = scrapy.Field()
+    title = scrapy.Field()
+    title_url = scrapy.Field()
+    post_time = scrapy.Field()
+    province = scrapy.Field()
+    source_platform = scrapy.Field()
+    bussiness_category = scrapy.Field()
+    annoucement_type = scrapy.Field()
+
     

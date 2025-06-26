@@ -10,7 +10,8 @@ SPIDER_MODULES = ["DlCrawler.spiders.toscape",
                   "DlCrawler.spiders.baidu",
                   "DlCrawler.spiders.weibo",
                   "DlCrawler.spiders.boss",
-                  "DlCrawler.spiders.taobao"
+                  "DlCrawler.spiders.taobao",
+                  "DlCrawler.spiders.ggzy",
 ]
 NEWSPIDER_MODULE = "DlCrawler.spiders"#生成新爬虫的默认路径
 

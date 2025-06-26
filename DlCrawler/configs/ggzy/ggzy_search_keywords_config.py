@@ -6,10 +6,10 @@ from scrapy_playwright.page import PageMethod
 CUSTOM_SETTINGS = {
         #  请求配置
         'CONCURRENT_REQUESTS': 1,
-        'DOWNLOAD_DELAY': 5,
+        'DOWNLOAD_DELAY': 3,
 
         #  MongoDB数据库配置
-        'MONGODB_CONNECTION_STRING' : "mongodb://localhost:27017/",
+        'MONGODB_CONNECTION_STRING' : "mongodb://localhost:27017/", 
         "MONGODB_DATABASE": "ggzy",         
         "MONGODB_COLLECTION": "search_keywords", 
 
@@ -79,8 +79,8 @@ CUSTOM_SETTINGS = {
         'MAXCOUNT': 100,  # 最大获取数量
         # 开始/结束日期的配置必须是有效的可用日期,成对填写. 否则报错,采集终止
         # 格式为: YYYY-MM-DD, 若全部为空,则按网站默认"近3天"时间段内爬取
-        'start_date':'2025-06-17', # 开始日期
-        'end_date':'2025-06-17' # 结束日期
+        'START_DATE':'2025-06-17', # 开始日期
+        'END_DATE':'2025-06-17' # 结束日期
     }
 
 
