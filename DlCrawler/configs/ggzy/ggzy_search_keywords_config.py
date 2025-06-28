@@ -76,7 +76,7 @@ CUSTOM_SETTINGS = {
            
         'EXPORT_FILE_FORMAT': "csv",# 导出文件格式,默认csv, 支持json,csv
         'KEYWORDS': "空调", # 关键词参数, 由实际需求填写
-        'MAXCOUNT': 100,  # 最大获取数量
+        'MAXCOUNT': 80,  # 最大获取数量
         # 开始/结束日期的配置必须是有效的可用日期,成对填写. 否则报错,采集终止
         # 格式为: YYYY-MM-DD, 若全部为空,则按网站默认"近3天"时间段内爬取
         'START_DATE':'2025-06-17', # 开始日期
