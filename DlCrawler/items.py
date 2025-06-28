@@ -5,7 +5,7 @@
 
 import scrapy
 
-# 编号1001 百度贴吧指定吧主题帖爬虫模板
+# 编号0101 百度贴吧指定吧主题帖爬虫模板
 class BaiduTiebaTopicItem(scrapy.Item):
     bar_name = scrapy.Field()      # 吧名
     title = scrapy.Field()         # 帖子标题  
@@ -13,7 +13,7 @@ class BaiduTiebaTopicItem(scrapy.Item):
     author = scrapy.Field()        # 发帖人
     reply_count = scrapy.Field()   # 回复数
 
-# 编号1002 百度搜索关键词爬虫模板
+# 编号0102 百度搜索关键词爬虫模板
 class BaiduSearchKeywordsItem(scrapy.Item):
     keyword = scrapy.Field()
     batch_id = scrapy.Field()
@@ -23,7 +23,7 @@ class BaiduSearchKeywordsItem(scrapy.Item):
     is_ad = scrapy.Field()  
     summary = scrapy.Field()
 
-# 编号1003 百度图片关键词爬虫模板
+# 编号0103 百度图片关键词爬虫模板
 class BaiduImgKeywordsItem(scrapy.Item):
     keyword = scrapy.Field()
     batch_id = scrapy.Field()
@@ -32,7 +32,7 @@ class BaiduImgKeywordsItem(scrapy.Item):
     raw_url = scrapy.Field()
     is_ad = scrapy.Field()
 
-# 编号2001 豆瓣电影榜单爬虫模板   
+# 编号0201 豆瓣电影榜单爬虫模板   
 class DoubanMovieItem(scrapy.Item):
     # 电影条目字段声明
     url = scrapy.Field()
@@ -51,7 +51,7 @@ class DoubanMovieItem(scrapy.Item):
     star_distribution = scrapy.Field()
     synopsis = scrapy.Field()
 
-#编号3001 ToScape名言模板
+#编号0301 ToScape名言模板
 class DlcrawlerItem(scrapy.Item):
     text = scrapy.Field() 
     author = scrapy.Field()
@@ -59,7 +59,7 @@ class DlcrawlerItem(scrapy.Item):
 
 
 
-# 编号4001 微博首页爬虫模板
+# 编号0401 微博首页爬虫模板
 class WeiboHomepageItem(scrapy.Item):
     user_name = scrapy.Field()     # 用户名
     verified_type = scrapy.Field() # 认证类型（如：超话主持人）
@@ -69,7 +69,8 @@ class WeiboHomepageItem(scrapy.Item):
     reposts = scrapy.Field()       # 转发数
     comments = scrapy.Field()      # 评论数
     likes = scrapy.Field()         # 点赞数
-# 编号4002 微博搜索关键词爬虫模板
+
+# 编号0402 微博搜索关键词爬虫模板
 class WeiboSearchKeywordsItem(scrapy.Item):
     keyword = scrapy.Field()       # 关键词
     mid  = scrapy.Field()          # MID
@@ -83,7 +84,7 @@ class WeiboSearchKeywordsItem(scrapy.Item):
     comments = scrapy.Field()      # 评论数
     likes = scrapy.Field()         # 点赞数
 
-# 编号5001 Boss直聘指定职位_列表信息爬虫模板
+# 编号0501 Boss直聘指定职位_列表信息爬虫模板
 class BossJobsListItem(scrapy.Item):
     batch_id = scrapy.Field()
     city = scrapy.Field()
@@ -96,7 +97,7 @@ class BossJobsListItem(scrapy.Item):
     company_url = scrapy.Field()
     work_area = scrapy.Field()
     
-# 编号6001 淘宝_搜索_关键字商品信息爬虫模板
+# 编号0601 淘宝_搜索_关键字商品信息爬虫模板
 class TaobaoSearchKeywordsItem(scrapy.Item):
     batch_id = scrapy.Field()
     keywords = scrapy.Field()
@@ -111,8 +112,8 @@ class TaobaoSearchKeywordsItem(scrapy.Item):
     paid_count = scrapy.Field()
     page_num = scrapy.Field()
    
-# 编号7001：全国公共资源_搜索_关键字公示信息爬虫模板
-class GgzySearchKeywordsItem(scrapy.Spider):
+# 编号0701：全国公共资源_搜索_关键字公示信息爬虫模板
+class GgzySearchKeywordsItem(scrapy.Item):
     batch_id = scrapy.Field()
     keywords = scrapy.Field()
     title = scrapy.Field()
@@ -120,7 +121,7 @@ class GgzySearchKeywordsItem(scrapy.Spider):
     post_time = scrapy.Field()
     province = scrapy.Field()
     source_platform = scrapy.Field()
-    bussiness_category = scrapy.Field()
-    annoucement_type = scrapy.Field()
-
+    business_category = scrapy.Field()
+    announcement_type = scrapy.Field()
+    industry = scrapy.Field()
     
