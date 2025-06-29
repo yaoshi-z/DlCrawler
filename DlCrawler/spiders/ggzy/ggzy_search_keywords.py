@@ -68,6 +68,23 @@ class GgzySearchKeywordsSpider(scrapy.Spider):
             self.logger.info(f"等待元素超时,可能网络不稳,程序即将关闭,稍候重试：{e}")
             await page.close()
             return
+        
+        try:
+            await page.click("li#choose_time_06")
+            await page.wait_for_selector("input#TIMEBEGIN_SHOW",timeout=60000)
+            await page.locator("input#TIMEBEGIN_SHOW").clear()
+            await page.locator("input#TIMEEND_SHOW").clear()
+            await page.fill("input#TIMEBEGIN_SHOW", self.start_date)
+            await page.fill("input#TIMEEND_SHOW", self.encode_date)
+        except Exception as e:
+            await page.click("li#choose_time_02")
+            self.logger.info(f"时间选择失败：{e},将默认抓取近3天数据")
+
+        try:
+            await page.fill("input#FINDTXT",self.keywords)
+            await page.click("input#searchButton")
+        except Exception as e:
+            self.logger.error(f"关键词录入失败：{e},将默认抓取近3天所有数据")
 
         # 人类形为模拟
         await self.random_scroll(page)  # 分段滚动
