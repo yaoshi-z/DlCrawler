@@ -108,8 +108,9 @@ class GgzySearchKeywordsSpider(scrapy.Spider):
                 # 定位下一页按钮
                 next_button = page.locator("a:has-text('下一页')")
                 
+                next_button_href = await next_button.get_attribute("href")
                 # 检查是否可点击
-                if await next_button.is_disabled():
+                if not next_button_href:
                     self.logger.info("已到达最后一页，结束爬取")
                     await page.close()
                     return
@@ -164,7 +165,7 @@ class GgzySearchKeywordsSpider(scrapy.Spider):
             # 提取字段
             item['keywords'] = self.keywords
             item['batch_id'] = self.now
-            item['title'] = item_node.css('h4 a::text').get()
+            item['title'] = item_node.css('h4 a::attr(title)').get()
             item['title_url'] = item_node.css('h4 a::attr(href)').get()
             item['post_time'] = item_node.css('h4 span::text').get()
             
