@@ -69,6 +69,8 @@ class GgzySearchKeywordsSpider(scrapy.Spider):
             await page.close()
             return
         
+        # 条件筛选逻辑
+        # 日期筛选
         try:
             await page.click("li#choose_time_06")
             await page.wait_for_selector("input#TIMEBEGIN_SHOW",timeout=60000)
@@ -80,17 +82,18 @@ class GgzySearchKeywordsSpider(scrapy.Spider):
             await page.click("li#choose_time_02")
             self.logger.info(f"时间选择失败：{e},将默认抓取近3天数据")
 
+        # 关键词筛选
         try:
             await page.fill("input#FINDTXT",self.keywords)
             await page.click("input#searchButton")
         except Exception as e:
             self.logger.error(f"关键词录入失败：{e},将默认抓取近3天所有数据")
 
-        # 人类形为模拟
+
+        # 人类行为模拟,会降低抓取速度,依据实际情况自行注释
         await self.random_scroll(page)  # 分段滚动
         await self.random_sleep(page)  # 随机停顿
-
-        await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
+        await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动至底部保底
 
         # 初始页面解析
         async for item in self.parse_page_content(page):
@@ -98,7 +101,7 @@ class GgzySearchKeywordsSpider(scrapy.Spider):
 
         # 分页循环
         while True:
-            # 检查终止条件
+            # 检查第一终止条件: 成功条目数 >= 最大设置条目数
             if self.success_count >= self.max_count:
                 self.logger.info(f"已爬取 {self.success_count} 条数据，达到上限，停止爬取。")
                 await page.close()
@@ -108,19 +111,21 @@ class GgzySearchKeywordsSpider(scrapy.Spider):
                 # 定位下一页按钮
                 next_button = page.locator("a:has-text('下一页')")
                 
+                # 检查第二终止条件: 下一页按钮是否可用
                 next_button_href = await next_button.get_attribute("href")
-                # 检查是否可点击
                 if not next_button_href:
                     self.logger.info("已到达最后一页，结束爬取")
                     await page.close()
                     return
                 
-                # 人类行为模拟
-                await self.random_sleep(page)
-                await self.random_scroll(page)
                 
                 # 点击下一页
                 await next_button.click()
+
+                # 人类行为模拟,会降低抓取速度,依据实际情况自行注释
+                await self.random_sleep(page) # 随机停顿
+                await self.random_scroll(page) # 分段滚动
+                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
                 
                 # 等待新内容加载
                 try:
@@ -148,13 +153,13 @@ class GgzySearchKeywordsSpider(scrapy.Spider):
         selector = scrapy.Selector(text=html)
 
         # 临时调试,需要时自行取消注释
-        try:
-            debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
-            debug_dir.mkdir(parents=True, exist_ok=True)
-            with open(f"{debug_dir}/{self.name}_p{self.current_page}.html", "w", encoding="utf-8") as f:
-                f.write(html)
-        except Exception as e:
-            self.logger.info(f"保存文件失败：{e}")
+        # try:
+        #     debug_dir = pathlib.Path(__file__).parent.parent.parent / "debug_files"
+        #     debug_dir.mkdir(parents=True, exist_ok=True)
+        #     with open(f"{debug_dir}/{self.name}_p{self.current_page}.html", "w", encoding="utf-8") as f:
+        #         f.write(html)
+        # except Exception as e:
+        #     self.logger.info(f"保存文件失败：{e}")
         
         cards_selector = '//div[@class="publicont"]'
         items_cards = selector.xpath(cards_selector)
