@@ -76,9 +76,10 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
         )
 
     async def parse(self, response):
+        # 从response中获取page对象
         page = response.meta['playwright_page']
-        if "current_page" in response.meta:
-            self.current_page = response.meta["current_page"]
+        
+        # 登录检测及cookies保存
         try:    
             await page.wait_for_selector("span.shopNameText--DmtlsDKm",timeout=60000)
             await page.context.storage_state(path=self.cookies_file)
@@ -87,14 +88,64 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
             await page.close()
             return
 
-        # 人类形为模拟
+        # 人类行为模拟,会降低抓取速度,依据实际情况自行注释
         await self.random_scroll(page)  # 分段滚动
         await self.random_sleep(page)  # 随机停顿
-
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
 
+        # 首页数据解析
+        async  for item in self.parse_page_content(page,response):
+            yield item
 
-        # 初始化必要对象
+        # 翻页逻辑
+        while True:
+            # 检查第一终止条件: 成功条目数 >= 最大设置条目数
+            if self.success_count >= self.max_count:
+                self.logger.info(f"已爬取 {self.success_count} 条数据，达到上限，停止爬取。")
+                await page.close()
+                return
+            
+            try:
+                # 定位下一页按钮
+                next_button = page.locator("span.next-btn-helper:has-text('下一页')")
+                
+                # 检查第二终止条件: 下一页按钮是否可用
+                is_disabled = await next_button.is_disabled()
+                if is_disabled:
+                    self.logger.info("已到达最后一页，结束爬取")
+                    await page.close()
+                    return
+                
+                
+                # 点击下一页
+                await next_button.click()
+
+                # 人类行为模拟,会降低抓取速度,依据实际情况自行注释
+                await self.random_sleep(page) # 随机停顿
+                await self.random_scroll(page) # 分段滚动
+                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")  # 滚动到底部加载更多内容
+                
+                # 等待新内容加载
+                try:
+                    await page.wait_for_selector("span.shopNameText--DmtlsDKm", state="attached", timeout=30000)
+                except Exception as e:
+                    self.logger.warning(f"等待新页面内容超时: {e}")
+                
+                # 更新页码
+                self.current_page += 1
+                self.logger.info(f"成功翻页到第{self.current_page}页")
+                
+                # 处理新页面内容
+                async for item in self.parse_page_content(page,response):
+                    yield item
+                
+            except Exception as e:
+                self.logger.error(f"分页失败: {e}")
+                if not page.is_closed():
+                    await page.close()
+                return
+    async def parse_page_content(self, page,response):
+         # 初始化必要对象
         html = await page.content()
         selector = scrapy.Selector(text=html)
 
@@ -139,62 +190,6 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
 
             self.success_count += 1
             yield item
-
-        # 终止条件2: 达到最大条目数则停止
-            if self.success_count >= self.max_count:
-                self.logger.info(f"已爬取 {self.success_count} 条数据，达到上限，停止爬取。")
-                await page.close()
-                return
-            
-                        
-        await self.random_sleep(page)  # 随机休眠
-
-        # 分页逻辑
-        try:
-            # 定位下一页按钮
-            next_button = page.locator("button:has-text('下一页')")
-            
-            # 检查按钮是否可点击
-            is_disabled = await next_button.is_disabled()
-            if is_disabled:
-                self.logger.info("已到达最后一页，结束爬取")
-                await page.close()
-                raise scrapy.exceptions.CloseSpider("已到达最后一页")
-            
-            # 继续解析当前页面内容
-            yield scrapy.Request(
-                url=page.url,
-                meta={
-                    "playwright": True,
-                    "playwright_include_page": True,
-                    "playwright_page": page,
-                    "playwright_page_methods": [
-                     # 等待随机时间（模拟人类行为）
-                    PageMethod("wait_for_timeout", random.randint(1500, 4000)),
-                     # 点击下一页按钮
-                    PageMethod("click", "button:has-text('下一页')"),
-                     # 等待新页面加载完成
-                    PageMethod("wait_for_selector", "span.shopNameText--DmtlsDKm", timeout=60000)
-            ],
-            "playwright_context_kwargs": {
-                "storage_state": str(self.cookies_file)
-            },
-                    "current_page": self.current_page+1,
-                },
-                callback=self.parse,
-                dont_filter=True
-            )
-            
-        except Exception as e:
-            # 检测验证码
-            html = await page.content()
-            if "验证码" in html or "auth" in page.url:
-                self.logger.warning("检测到反爬验证，暂停爬取")
-                await page.wait_for_timeout(60_000)
-            else:
-                self.logger.error(f"分页失败: {e}")
-                await page.close()
-
     async def random_sleep(self,page):
         """自然正态分布式休眠，增强反爬"""
         # 以2.5秒为中心，标准差0.5秒，范围限制在1.5-4秒
