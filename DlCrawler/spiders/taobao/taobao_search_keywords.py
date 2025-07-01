@@ -28,6 +28,7 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
     # 基础参数
     name = "taobao_search_keywords"
     allowed_domains = ["taobao.com"]
+    current_page = 1  # 当前页码
     keywords = CUSTOM_SETTINGS['KEYWORDS']  # 搜索关键词
     encode_keywords = quote(keywords)
     start_urls = [
@@ -45,9 +46,9 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
     cookies_dir = pathlib.Path(__file__).parent.parent.parent / "data" / "cookies"
     cookies_dir.mkdir(parents=True, exist_ok=True)  # 自动创建目录
     cookies_file = cookies_dir / f"{name}_cookies.json"
-    
+
     # 其它参数
-    current_page = 1  # 当前页码
+    
     retries = 0
     now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
