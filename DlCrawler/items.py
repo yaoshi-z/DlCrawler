@@ -7,11 +7,14 @@ import scrapy
 
 # 编号0101 百度贴吧指定吧主题帖爬虫模板
 class BaiduTiebaTopicItem(scrapy.Item):
+    batch_id = scrapy.Field()      # 批次ID
     bar_name = scrapy.Field()      # 吧名
     title = scrapy.Field()         # 帖子标题  
+    title_url = scrapy.Field()     # 帖子链接
     content = scrapy.Field()       # 帖子内容
     author = scrapy.Field()        # 发帖人
     reply_count = scrapy.Field()   # 回复数
+    page_num = scrapy.Field()       # 页码
 
 # 编号0102 百度搜索关键词爬虫模板
 class BaiduSearchKeywordsItem(scrapy.Item):
