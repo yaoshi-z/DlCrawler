@@ -25,11 +25,11 @@ import datetime
 import asyncio
 
 class TaobaoSearchKeywordsSpider(scrapy.Spider):
+    # 基础参数
     name = "taobao_search_keywords"
     allowed_domains = ["taobao.com"]
     keywords = CUSTOM_SETTINGS['KEYWORDS']  # 搜索关键词
     encode_keywords = quote(keywords)
-    current_page = 1  # 当前页码
     start_urls = [
                 f"https://s.taobao.com/search?page={current_page}&q={encode_keywords}&tab=all"
                 ]
@@ -41,14 +41,17 @@ class TaobaoSearchKeywordsSpider(scrapy.Spider):
     max_count = CUSTOM_SETTINGS['MAXCOUNT']
     success_count = 0
 
-    
-    retries = 0
-
-    now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-
+    # cookies文件路径初始化
     cookies_dir = pathlib.Path(__file__).parent.parent.parent / "data" / "cookies"
     cookies_dir.mkdir(parents=True, exist_ok=True)  # 自动创建目录
     cookies_file = cookies_dir / f"{name}_cookies.json"
+    
+    # 其它参数
+    current_page = 1  # 当前页码
+    retries = 0
+    now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
+    
     def start_requests(self):
         # 发起登录请求
         # 判断是否存在cookies文件,并发送对应的登录请求
