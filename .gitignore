@@ -6,3 +6,4 @@ logs/
 .vscode/
 DlCrawler/data
 DlCrawler/exports
+DlCrawler/utils/query_db_output
