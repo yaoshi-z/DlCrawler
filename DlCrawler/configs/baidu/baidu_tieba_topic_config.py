@@ -10,7 +10,7 @@ CUSTOM_SETTINGS = {
         #  MongoDB数据库配置
         'MONGODB_CONNECTION_STRING' : "mongodb://localhost:27017/",
         "MONGODB_DATABASE": "baidu",         
-        "MONGODB_COLLECTION": "topic_list",  
+        "MONGODB_COLLECTION": "tieba_topic",  
         # 下载处理器配置
         'DOWNLOAD_HANDLERS':  {
         "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
