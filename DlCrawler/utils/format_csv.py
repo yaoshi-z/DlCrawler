@@ -3,6 +3,7 @@ import pathlib
 
 file_name = "模板列表.csv"
 dir_path = pathlib.Path(__file__).parent.parent.parent
+dir_path.mkdirs(parents=True,exist_ok=True)
 file_path = dir_path / file_name
 
 try:
