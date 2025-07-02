@@ -35,6 +35,20 @@ class BaiduImgKeywordsItem(scrapy.Item):
     raw_url = scrapy.Field()
     is_ad = scrapy.Field()
 
+# 编号0104 百度贴吧帖子详情爬虫模板
+class BaiduTiebaDetailsItem(scrapy.Item):
+    batch_id = scrapy.Field()
+    bar_name = scrapy.Field()
+    title = scrapy.Field()
+    title_url = scrapy.Field()
+    floor = scrapy.Field()
+    author = scrapy.Field()
+    bar_level = scrapy.Field()
+    content = scrapy.Field()
+    device_source = scrapy.Field()
+
+
+
 # 编号0201 豆瓣电影榜单爬虫模板   
 class DoubanMovieItem(scrapy.Item):
     # 电影条目字段声明
