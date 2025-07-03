@@ -11,6 +11,7 @@
         该文件数据的两种获取方式:
         1.手动添加url至baidu_tieba_details_urls.csv文件
         2.通过utils/query_DB.py查询数据库,获取已抓取的title_url,复制添加到baidu_tieba_details_urls.csv文件
+    * 增加并发数量,减少或禁用人类模拟行为可以提升抓取效率,但会增加反爬虫风险,需根据实际情况自行调整
 
 """
 
@@ -31,9 +32,12 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
     name = "baidu_tieba_details"
     allowed_domains = ["tieba.baidu.com"]
     current_page = 1  # 当前页码
-    bar_name = CUSTOM_SETTINGS['KEYWORDS']  # 贴吧名称
-    encode_topic_name = quote(bar_name)
     start_urls = []
+
+    # bar_name,encode_topi_name参数不适用于本模板
+    # bar_name = CUSTOM_SETTINGS['KEYWORDS']  # 贴吧名称
+    # encode_topic_name = quote(bar_name)
+    
 
     
     # 加载配置参数
@@ -110,7 +114,7 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
 
         # 登录检测及cookies保存
         try:    
-            await page.wait_for_selector("div.p_postlist",timeout=60000)
+            await page.wait_for_selector("div.u_menu_item.u_menu_news",timeout=60000)
             await page.context.storage_state(path=self.cookies_file)
         except Exception as e:
             self.logger.info(f"等待元素超时,登录失败,程序即将关闭,稍候重试：{e}")
@@ -134,7 +138,7 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
             
             try:
                 # 定位下一页按钮
-                next_button = page.locator("list.l_pager.pager_theme_5.pb_list_pager a:has-text('下一页')")
+                next_button = page.locator("li.l_pager.pager_theme_5.pb_list_pager a:has-text('下一页')")
                 # 检查第二终止条件: 下一页按钮是否可用
                 if await next_button.count() == 0:
                     self.logger.info("已到达最后一页，结束爬取")
@@ -190,17 +194,39 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
         #     self.logger.info(f"保存文件失败：{e}")
 
         
-        for post in selector.css('div.p_postlist'):  # 遍历每个帖子
+        for post in selector.css('div.l_post.l_post_bright.j_l_post.clearfix'):  # 遍历每个帖子
             item = BaiduTiebaDetailsItem()
 
             item['batch_id'] = self.now
-            item['bar_name'] = self.bar_name
-            # item['title'] = post.css('div.threadlist_title a.j_th_tit::text').get('').strip()
-            # item['title_url'] = response.urljoin(post.css('div.threadlist_title a.j_th_tit::attr(href)').get())
-            # item['content'] = post.css('div.threadlist_text div.threadlist_abs::text').get('').strip()
-            # item['author'] = post.css('div.threadlist_author span.tb_icon_author a.frs-author-name::text').get('').strip()
-            # item['reply_count'] = int(post.css('div.col2_left span.threadlist_rep_num::text').get('0'))
-            # item['page_num'] = self.current_page
+            item['bar_name'] = post.css('a.card_title_fname::text').get('').strip()
+            item['title'] = post.css('h3.core_title_txt.pull-left.text-overflow::attr(title)').get('').strip()
+            item['title_url'] = page.url
+            item['floor'] = post.css('span.tail-info::text').get('').strip()
+            item['author'] = post.css('a.p_author_name.j_user_card::text').get('').strip()
+            item['bar_level'] = int(post.css('div.d_badge_lv::text').get('').strip())
+            item['main_comment_id'] = int(post.css('::attr(data-pid)').get('').strip())
+            item['main_comment'] = post.css('div.d_post_content.j_d_post_content::text').get('').strip()
+            item['main_comment_time'] = post.css(
+    'div.post-tail-wrap > span.tail-info:nth-last-child(1)::text'
+).get('').strip()
+            item['device_source'] = post.xpath(
+    '//span[@class="tail-info" and a]/a//text()'
+).get('').strip()
+
+            sub_comments = []
+            for comment in post.css('li.lzl_single_post.j_lzl_s_p'):
+                # 提取@回复关系
+                at_link = comment.css('span.lzl_content_main a.at.j_user_card')
+                if at_link:
+                    replied_user = at_link.css('::text').get('').strip()
+                sub_item = {
+                    'sub_author': comment.css('a.j_user_card::text').get('').strip(),
+                    'sub_content': comment.css('span.lzl_content_main::text').get('').strip(),
+                    'sub_time': comment.css('span.lzl_time::text').get('').strip(),
+                    'replied_user': replied_user
+                }
+                sub_comments.append(sub_item)
+            item['sub_comments'] = sub_comments
 
             self.success_count += 1
             yield item

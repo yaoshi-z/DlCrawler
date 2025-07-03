@@ -44,8 +44,12 @@ class BaiduTiebaDetailsItem(scrapy.Item):
     floor = scrapy.Field()
     author = scrapy.Field()
     bar_level = scrapy.Field()
-    content = scrapy.Field()
+    main_comment_id = scrapy.Field()
+    main_comment = scrapy.Field()
+    main_comment_time = scrapy.Field()
     device_source = scrapy.Field()
+    sub_comments = scrapy.Field()
+
 
 
 
