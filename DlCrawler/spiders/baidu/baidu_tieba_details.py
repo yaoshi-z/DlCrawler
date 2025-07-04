@@ -109,7 +109,6 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
                 callback=self.parse
             )
 
-
     async def parse(self, response):
         page = response.meta['playwright_page']
 
@@ -163,7 +162,7 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
                 
                 # 等待新内容加载
                 try:
-                    await page.wait_for_selector("div.p_postlist", state="attached", timeout=30000)
+                    await page.wait_for_selector("div.l_post.l_post_bright.j_l_post.clearfix", state="attached", timeout=30000)
                 except Exception as e:
                     self.logger.warning(f"等待新页面内容超时: {e}")
                 
@@ -194,42 +193,44 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
         # except Exception as e:
         #     self.logger.info(f"保存文件失败：{e}")
 
+        bar_name = selector.css('a.card_title_fname::text').get('').strip()
+        title = selector.css('h3.core_title_txt.pull-left.text-overflow::attr(title)').get('').strip()
         
         for post in selector.css('div.l_post.l_post_bright.j_l_post.clearfix'):  # 遍历每个帖子
+            if self.success_count >= self.max_count:
+                self.logger.info(f"达到上限{self.max_count}, 终止当前页解析")
+                break 
             item = BaiduTiebaDetailsItem()
 
             item['batch_id'] = self.now
-            item['bar_name'] = post.css('a.card_title_fname::text').get('').strip()
-            item['title'] = post.css('h3.core_title_txt.pull-left.text-overflow::attr(title)').get('').strip()
-            item['title_url'] = page.url
-            item['floor'] = post.css('span.tail-info::text').get('').strip()
+            item['bar_name'] = bar_name
+            item['title'] = title
+            item['title_url'] = page.url.split('?')[0]
+            item['floor'] = post.css('div.post-tail-wrap span:nth-last-child(3)::text').get('').strip()
             item['author'] = post.css('a.p_author_name.j_user_card::text').get('').strip()
-            item['bar_level'] = int(post.css('div.d_badge_lv::text').get('').strip())
+            item['bar_level'] = int(post.css('div.d_badge_lv::text').get('0').strip())
             item['main_comment_id'] = int(post.css('::attr(data-pid)').get('').strip())
             item['main_comment'] = post.css('div.d_post_content.j_d_post_content::text').get('').strip()
-            item['main_comment_time'] = post.css(
-    'div.post-tail-wrap > span.tail-info:nth-last-child(1)::text'
-).get('').strip()
-            item['device_source'] = post.xpath(
-    '//span[@class="tail-info" and a]/a//text()'
-).get('').strip()
+            item['main_comment_time'] = post.css('div.post-tail-wrap span:nth-last-child(2)::text').get('').strip()
+            item['device_source'] = post.xpath('//span[@class="tail-info" and a]/a//text()').get('').strip()
 
             sub_comments = []
             for comment in post.css('li.lzl_single_post.j_lzl_s_p'):
                 # 提取@回复关系
-                at_link = comment.css('span.lzl_content_main a.at.j_user_card')
-                if at_link:
-                    replied_user = at_link.css('::text').get('').strip()
+                # 直接提取文本，无需中间变量
+                reply_to = comment.xpath('.//span[@class="lzl_content_main"]/a[contains(@class,"at")]/text()').get('').strip()
+                sub_content = comment.xpath('.//span[@class="lzl_content_main"]/text()[last()]').get('').strip()
                 sub_item = {
                     'sub_author': comment.css('a.j_user_card::text').get('').strip(),
-                    'sub_content': comment.css('span.lzl_content_main::text').get('').strip(),
+                    'sub_content': sub_content,
                     'sub_time': comment.css('span.lzl_time::text').get('').strip(),
-                    'replied_user': replied_user
-                }
+                    'reply_to': reply_to
+                    }
                 sub_comments.append(sub_item)
             item['sub_comments'] = sub_comments
 
             self.success_count += 1
+            self.logger.info(f"已爬取 {self.success_count} 条数据。")
             yield item
 
     async def random_sleep(self,page):

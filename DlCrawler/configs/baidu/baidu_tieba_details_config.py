@@ -6,7 +6,7 @@ from scrapy_playwright.page import PageMethod
 CUSTOM_SETTINGS = {
         #  请求配置
         'CONCURRENT_REQUESTS': 1,
-        'DOWNLOAD_DELAY': 5,
+        'DOWNLOAD_DELAY': 3,
         #  MongoDB数据库配置
         'MONGODB_CONNECTION_STRING' : "mongodb://localhost:27017/",
         "MONGODB_DATABASE": "baidu",         
@@ -55,7 +55,7 @@ CUSTOM_SETTINGS = {
         # 该模板要求KEYWORDS参数值必须完全匹配贴吧主题名称,否则可能无法正确获取数据!
         # 贴吧主题名称,使用keywords参数名是为了与其他爬虫保持一致性
         'KEYWORDS': "郑州地铁",  # 贴吧名称
-        'MAXCOUNT': 100  # 最大获取数量
+        'MAXCOUNT': 200  # 最大获取数量
     }
 
 
