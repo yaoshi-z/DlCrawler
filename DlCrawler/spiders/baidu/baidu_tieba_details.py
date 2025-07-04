@@ -35,11 +35,9 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
     current_page = 1  # 当前页码
     start_urls = []
 
-    # bar_name,encode_topi_name参数不适用于本模板
+    # bar_name及encode_topi_name参数不适用于本模板
     # bar_name = CUSTOM_SETTINGS['KEYWORDS']  # 贴吧名称
     # encode_topic_name = quote(bar_name)
-    
-
     
     # 加载配置参数
     custom_settings = CUSTOM_SETTINGS
@@ -83,7 +81,6 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
             return None
 
     def start_requests(self):
-
         # 发起登录请求
         # 判断是否存在cookies文件,并发送对应的登录请求
         for target_url in self.start_urls:
@@ -217,8 +214,8 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
             sub_comments = []
             for comment in post.css('li.lzl_single_post.j_lzl_s_p'):
                 # 提取@回复关系
-                # 直接提取文本，无需中间变量
                 reply_to = comment.xpath('.//span[@class="lzl_content_main"]/a[contains(@class,"at")]/text()').get('').strip()
+                # 提取子评论内容
                 sub_content = comment.xpath('.//span[@class="lzl_content_main"]/text()[last()]').get('').strip()
                 sub_item = {
                     'sub_author': comment.css('a.j_user_card::text').get('').strip(),
