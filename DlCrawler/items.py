@@ -51,8 +51,6 @@ class BaiduTiebaDetailsItem(scrapy.Item):
     sub_comments = scrapy.Field()
 
 
-
-
 # 编号0201 豆瓣电影榜单爬虫模板   
 class DoubanMovieItem(scrapy.Item):
     # 电影条目字段声明
@@ -146,3 +144,14 @@ class GgzySearchKeywordsItem(scrapy.Item):
     announcement_type = scrapy.Field()
     industry = scrapy.Field()
     
+# 编号0801: 网易云音乐免费歌单模板
+class WyMusicFreeItem(scrapy.Item):
+    batch_id = scrapy.Field()
+    playlist_id = scrapy.Field()
+    playlist_title = scrapy.Field()
+    song_id = scrapy.Field()
+    song_title = scrapy.Field()
+    song_duration = scrapy.Field()
+    song_author = scrapy.Field()
+    song_album = scrapy.Field()
+    song_url = scrapy.Field()
