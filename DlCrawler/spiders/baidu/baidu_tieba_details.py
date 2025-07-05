@@ -149,7 +149,7 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
                 next_selector = "li.l_pager.pager_theme_5.pb_list_pager a:has-text('下一页')"
                 next_page_link = await page.locator(next_selector).first.get_attribute("href")
                 next_page_url = response.urljoin(next_page_link)
-                await page.goto(next_page_url, wait_until="networkidle") 
+                await page.goto(next_page_url, wait_until="domcontentloaded") 
                 
                 
                 # 人类行为模拟,会降低抓取速度,依据实际情况自行注释
@@ -227,7 +227,12 @@ class BaiduTiebaDetailsSpider(scrapy.Spider):
             item['sub_comments'] = sub_comments
 
             self.success_count += 1
-            self.logger.info(f"已爬取 {self.success_count} 条数据。")
+           
+            self.logger.info(f'''已爬取 第{self.success_count} 条数据:
+                             title:{item['title']}
+                             id:{item['main_comment_id']}
+                             ...
+''')
             yield item
 
     async def random_sleep(self,page):
