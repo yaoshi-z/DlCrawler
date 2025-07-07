@@ -3,13 +3,16 @@
 仅用于个人学习和技术研究
 请勿用于商业用途或大规模传播
 下载后24小时内请删除文件
+
+脚本采用传统requests模块进行数据采集
 """
 
 import requests
 import re
-import os
 import pathlib
 from urllib.parse import quote
+import time
+import random
 
 script_name = "wy_music_free_downloader"
 save_dir = pathlib.Path(__file__).parent.parent.parent.parent / "download" / script_name
@@ -53,14 +56,21 @@ def download_music(music_id, title, save_dir=save_dir):
 
 # 主程序
 if __name__ == "__main__":
-    # 获取歌单信息（使用您已有的代码）
-    url = "https://music.163.com/playlist?id=2511560749"
+    # 获取歌单信息
+    url = "https://music.163.com/discover/toplist?id=991319590"
     html = requests.get(url, headers=headers).text
+    
+    with open("wy.html","w", encoding="utf-8") as f:
+        f.write(html)
     
     # 提取歌曲ID和标题
     infos = re.findall(r'<a href="/song\?id=(\d+)">(.*?)</a>', html)
+    print(len(infos))
     
     # 下载所有歌曲
-    for music_id, title in infos:
+    for music_id, title in infos[10:20]:
         print(f"开始下载: {title} (ID: {music_id})")
         download_music(music_id, title)
+        time.sleep(random.uniform(0.5, 1.5))
+        print(f"🕑随机休眠1-5秒")
+
