@@ -151,7 +151,4 @@ class WyMusicFreeItem(scrapy.Item):
     playlist_title = scrapy.Field()
     song_id = scrapy.Field()
     song_title = scrapy.Field()
-    song_duration = scrapy.Field()
-    song_author = scrapy.Field()
-    song_album = scrapy.Field()
     song_url = scrapy.Field()
